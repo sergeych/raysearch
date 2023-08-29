@@ -31,7 +31,8 @@ data class SearchFolder(
         parent?.pathString?.let { "$it/$name" } ?: name
     }
 
-    val path by lazy { Paths.get(pathString) }
+    @Suppress("unused")
+    val path: Path by lazy { Paths.get(pathString) }
 
     var isOk: Boolean = true
         private set
@@ -107,33 +108,23 @@ data class SearchFolder(
             return true
         }
 
-        private enum class DirType {
-            Normal,
-            Gradle,
-            Npm,
-        }
-
-        private val directoryTypes = mutableMapOf<String, DirType>()
+        private val directoryTypes = mutableMapOf<String, SkipDirRule>()
 
         fun sholuldSkipDir(parentPath: String, dir: String): Boolean {
             val t = directoryTypes.getOrPut(parentPath) {
                 when {
                     fileExists(parentPath + "/build.gradle")
                             || fileExists(parentPath + "/build.gradle.kts") ->
-                                DirType.Gradle
+                                GradleProjectRule
 
                     fileExists("$parentPath/node_modules") && maskExists(parentPath, "*.json") ->
-                        DirType.Npm
+                        NpmProjectRule
 
                     else ->
-                        DirType.Normal
+                        NoSkipRule
                 }
             }
-            return when (t) {
-                DirType.Normal -> false
-                DirType.Npm -> dir == "node_modules"
-                DirType.Gradle -> dir == "build" || dir == "gradle"
-            }
+            return t.shouldSkip(parentPath, dir)
         }
     }
 }
