@@ -2,11 +2,17 @@ package net.sergeych.raysearch
 
 import byIdOrThrow
 import db
+import dbs
 import inDb
+import inDbs
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toKotlinInstant
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import net.sergeych.kotyara.db.DbContext
 import net.sergeych.kotyara.db.Identifiable
 import net.sergeych.kotyara.db.destroy
+import net.sergeych.kotyara.db.updateAndReturn
 import net.sergeych.mp_logger.LogTag
 import net.sergeych.mp_logger.Loggable
 import net.sergeych.mp_logger.debug
@@ -24,7 +30,7 @@ data class SearchFolder(
 
 
     val parent: SearchFolder? by lazy {
-        parentId?.let { inDb { byIdOrThrow(it) } }
+        parentId?.let { inDbs { byIdOrThrow(it) } }
     }
 
     val pathString: String by lazy {
@@ -37,8 +43,9 @@ data class SearchFolder(
     var isOk: Boolean = true
         private set
 
-    fun rescan(cachedPath: String = pathString): SearchFolder {
+    suspend fun rescan(cachedPath: String = pathString): SearchFolder {
         val p = Paths.get(cachedPath)
+        val rule by lazy { getRule(cachedPath) }
         if (!p.exists()) {
             isOk = false
             db { destroy(it) }
@@ -46,7 +53,7 @@ data class SearchFolder(
         } else {
             val mtime = p.getLastModifiedTime().toInstant().toKotlinInstant()
             if (checkedMtime == mtime) {
-                info { "mitime is not changed, skipping" }
+                debug { "mtime is not changed, skipping" }
             } else {
                 for (n in p.listDirectoryEntries("*")) {
                     when {
@@ -62,18 +69,19 @@ data class SearchFolder(
                         }
 
                         n.isDirectory() -> {
-                            if (shouldScanDir(pathString, n.name)) {
+                            if (!rule.shouldSkipDir(pathString, n.name)) {
                                 debug { "processing directory $n" }
-                                get(parentId, n).rescan(n.pathString)
+                                get(id, n).rescan(n.pathString)
                             }
                         }
 
                         n.isRegularFile() -> {
-                            info { "need to scan regular file $n" }
+                            rule.textExtractor(n)?.let { checkFile(it, n) }
                         }
                     }
                 }
-                // The directory is scanned: we save it mtime
+                // todo: remove from index files that no longer exists!
+                // todo: mark directory scanned by mtime to speedup next scan
                 return inDb {
                     update(
                         "update search_folders set checked_mtime=? where id=?",
@@ -86,45 +94,58 @@ data class SearchFolder(
         return this
     }
 
-    companion object {
-        fun get(parentId: Long?, n: Path) = db { dbc ->
-            dbc.queryRow<SearchFolder>(
-                "select * from search_folders where parent_id=? and name=?",
-                parentId,
-                n.name
-            ) ?: run {
-                val id = dbc.updateAndGetId<Long>(
-                    "insert into search_folders(parent_id, name) values(?,?)",
-                    parentId,
-                    if (parentId == null) n.pathString else n.name
-                )!!
-                dbc.byIdOrThrow<SearchFolder>(id)
+    suspend fun checkFile(dd: DocDef, file: Path) {
+        db { dbc ->
+            val fd = dbc.findBy<FileDoc>(
+                "search_folder_id" to id,
+                "file_name" to file.fileName.toString()
+            )?.also {
+                if ((it.processedSize != null && it.processedSize != file.fileSize()) ||
+                    (it.processedMtime != null &&
+                            it.processedMtime != file.getLastModifiedTime().toInstant().toKotlinInstant())
+                )
+                    it.requestRescan(dbc, file)
             }
+                ?: dbc.updateAndReturn<FileDoc, Long>(
+                    """
+                    insert into file_docs(file_name, search_folder_id, doc_def, detected_size)
+                    values(?,?,?,?)""".trimIndent(),
+                    file.fileName.toString(), id, Json.encodeToString(dd), file.fileSize()
+                ).also { it.requestRescan(dbc, file) }
+        }
+    }
+
+    companion object {
+        fun get(parentId: Long?, n: Path): SearchFolder = dbs { get(it, parentId, n) }
+        fun get(dbc: DbContext, parentId: Long?, n: Path): SearchFolder {
+            val name = if (parentId == null) n.toString() else n.name
+            return dbc.findBy<SearchFolder>("parent_id" to parentId, "name" to name)
+                ?: run {
+                    val id = dbc.updateAndGetId<Long>(
+                        "insert into search_folders(parent_id, name) values(?,?)",
+                        parentId,
+                        name
+                    )!!
+                    dbc.byIdOrThrow<SearchFolder>(id)
+                }
         }
 
-        fun shouldScanDir(parentPath: String, dir: String): Boolean {
-            // We primarily have rules for development libraries or like
-            if (sholuldSkipDir(parentPath, dir)) return false
-            return true
-        }
+        private val directoryTypes = mutableMapOf<String, SearchRule>()
 
-        private val directoryTypes = mutableMapOf<String, SkipDirRule>()
-
-        fun sholuldSkipDir(parentPath: String, dir: String): Boolean {
-            val t = directoryTypes.getOrPut(parentPath) {
+        fun getRule(parentPath: String): SearchRule {
+            return directoryTypes.getOrPut(parentPath) {
                 when {
                     fileExists(parentPath + "/build.gradle")
                             || fileExists(parentPath + "/build.gradle.kts") ->
-                                GradleProjectRule
+                        GradleProjectRule
 
                     fileExists("$parentPath/node_modules") && maskExists(parentPath, "*.json") ->
                         NpmProjectRule
 
                     else ->
-                        NoSkipRule
+                        NoSearchRule
                 }
             }
-            return t.shouldSkip(parentPath, dir)
         }
     }
 }
