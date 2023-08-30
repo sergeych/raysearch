@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.key
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -84,7 +85,9 @@ fun main() = application {
         if (it.isCtrlPressed && it.key == Key.Q)
             System.exit(0)
         false
-    }) {
+    },
+        icon = painterResource("raysearch.svg")
+    ) {
         App()
     }
 }
