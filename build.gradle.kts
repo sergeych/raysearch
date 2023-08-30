@@ -28,6 +28,8 @@ dependencies {
     implementation("net.sergeych:kotyara:1.4.2-SNAPSHOT")
     implementation("net.sergeych:mp_stools:1.4.1-SNAPSHOT")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+    implementation("br.com.devsrsouza.compose.icons:feather:1.1.0")
+
     testImplementation(kotlin("test"))
 }
 
