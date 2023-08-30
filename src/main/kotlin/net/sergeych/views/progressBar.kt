@@ -17,7 +17,11 @@ fun ScanProgressBar() {
     var stats by remember { mutableStateOf(FileScanner.stats.value) }
     var progress by remember { mutableStateOf(0f) }
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Files: ${stats.processed.files.withThousandsSeparator()} / ${stats.total.files}")
+        Text(
+            "Files: ${stats.processed.files.withThousandsSeparator("\u200A")} / ${
+                stats.total.files.withThousandsSeparator("\u200A")
+            }"
+        )
         LinearProgressIndicator(progress, Modifier.weight(1f).align(Alignment.CenterVertically))
         Text("${stats.processed.size.toDataSize()} / ${stats.total.size.toDataSize()}")
     }
@@ -25,7 +29,7 @@ fun ScanProgressBar() {
     LaunchedEffect(true) {
         FileScanner.stats.collect {
             stats = it
-            progress = if(stats.total.size == 0L) 0f else stats.processed.size.toFloat() / stats.total.size
+            progress = if (stats.total.size == 0L) 0f else stats.processed.size.toFloat() / stats.total.size
         }
     }
 

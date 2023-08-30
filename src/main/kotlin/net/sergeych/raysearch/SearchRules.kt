@@ -32,6 +32,7 @@ open class SearchRule {
         val noScanFileExtensions = setOf(
             "jpg", "png", "gif", "mov", "wav", "mpg", "mpeg",
             "wasm", "bin", "exe", "kexe", "lib", "o", "so", "dll", "class", "pyc",
+            "dat", "sym",
             "zip", "bz2", "gz", "7z", "jar",
             // to implement soon:
             "odf", "odt", "ods", "pdf",

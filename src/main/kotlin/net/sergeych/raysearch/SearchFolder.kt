@@ -96,13 +96,14 @@ data class SearchFolder(
 
     suspend fun checkFile(dd: DocDef, file: Path) {
         db { dbc ->
-            val fd = dbc.findBy<FileDoc>(
+            dbc.findBy<FileDoc>(
                 "search_folder_id" to id,
                 "file_name" to file.fileName.toString()
             )?.also {
+                val m1 = it.processedMtime?.epochSeconds
+                val m2 = file.getLastModifiedTime().toMillis() / 1000
                 if ((it.processedSize != null && it.processedSize != file.fileSize()) ||
-                    (it.processedMtime != null &&
-                            it.processedMtime != file.getLastModifiedTime().toInstant().toKotlinInstant())
+                    (m1 != null && m1 != m2)
                 )
                     it.requestRescan(dbc, file)
             }

@@ -12,12 +12,11 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import net.sergeych.kotyara.Database
 import net.sergeych.kotyara.db.DbContext
 import net.sergeych.mp_logger.Log
+import net.sergeych.mp_tools.globalLaunch
 import net.sergeych.raysearch.SearchFolder
 import net.sergeych.views.InputLine
 import net.sergeych.views.ScanProgressBar
@@ -29,7 +28,7 @@ private object DataHolder
 val dataBase by lazy {
     val home = Paths.get(System.getProperty("user.home") + "/.rayscan/db")
     Files.createDirectories(home)
-    Files.delete(home.resolve("rayscan.mv.db"))
+//    Files.delete(home.resolve("rayscan.mv.db"))
     println("--- $home")
     Class.forName("org.h2.Driver")
     Database("jdbc:h2:$home/rayscan", 10, null)
@@ -51,7 +50,7 @@ fun App() {
         Column(
             Modifier.padding(4.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
+        ) {
             InputLine()
             ScanProgressBar()
         }
@@ -75,14 +74,14 @@ fun main() = application {
     println(sf.parent)
     println(sf.pathString)
 
-    GlobalScope.launch {
+    globalLaunch {
 //        for( i in 1..20)
         delay(800)
-            sf.rescan()
+        sf.rescan()
     }
 
     Window(onCloseRequest = ::exitApplication, title = "8 Rays search", onKeyEvent = {
-        if( it.isCtrlPressed && it.key == Key.Q)
+        if (it.isCtrlPressed && it.key == Key.Q)
             System.exit(0)
         false
     }) {

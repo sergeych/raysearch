@@ -1,8 +1,8 @@
 package net.sergeych.raysearch
 
 import inDb
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,19 +19,20 @@ object FileScanner {
     }
 
     data class Stats(val total: Stat = Stat(), val processed: Stat = Stat()) {
+        @Suppress("unused")
         val isEmpty = total.isEmpty && processed.isEmpty
     }
 
     private val _stats = MutableStateFlow<Stats>(Stats())
     val stats: StateFlow<Stats> = _stats.asStateFlow()
 
+    @OptIn(DelicateCoroutinesApi::class)
     private val changeBouncer = Debouncer(GlobalScope, 100.milliseconds, 100.milliseconds) {
         inDb {
             val s1 = queryRow<Stat>(
                 """
                 select count(*) as files, coalesce(sum(detected_size),0) as size 
                 from file_docs
-                where processed_mtime is null
             """.trimIndent()
             )!!
             val s2 = queryRow<Stat>(
@@ -50,9 +51,11 @@ object FileScanner {
             while(isActive) {
                 val fd = FileDoc.firstNotProcessed()
                 if (fd != null) {
-                    println(fd.path)
-                    cancel()
-//                    delay(1000)
+//                    println(fd.path)
+                    fd.markProcessed()
+                    fd.loadText()
+                    changeBouncer.schedule()
+                    delay(1)
                 }
                 else delay(500)
             }

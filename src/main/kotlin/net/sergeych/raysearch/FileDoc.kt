@@ -8,8 +8,11 @@ import net.sergeych.kotyara.db.Identifiable
 import net.sergeych.kotyara.db.hasOne
 import net.sergeych.mp_logger.LogTag
 import net.sergeych.mp_logger.Loggable
+import net.sergeych.mp_tools.toDataSize
+import net.sergeych.mp_tools.trimToEllipsis
 import java.nio.file.Path
 import kotlin.io.path.fileSize
+import kotlin.io.path.getLastModifiedTime
 
 class FileDoc(
     override val id: Long,
@@ -17,7 +20,7 @@ class FileDoc(
     val searchFolderId: Long,
     val docDef: DocDef,
     val processedMtime: Instant? = null,
-    val detectedSize: Long = 0,
+    @Suppress("unused") val detectedSize: Long = 0,
     val processedSize: Long? = null,
 ) : Identifiable<Long>, Loggable by LogTag("FD${id}:$fileName") {
 
@@ -28,8 +31,6 @@ class FileDoc(
     }
 
     val path: Path by lazy {
-        println(folder.path)
-        println(fileName)
         folder.path.resolve(fileName)
     }
 
@@ -42,6 +43,22 @@ class FileDoc(
         """.trimIndent(), file.fileSize(), id
         )
         FileScanner.pulseChanged()
+    }
+
+    fun markProcessed() {
+        dbs { dbc ->
+            dbc.update("""update file_docs 
+                |set processed_size=detected_size, processed_mtime=?
+                |where id=?""".trimMargin(), path.getLastModifiedTime().toInstant(), id)
+        }
+
+    }
+
+    fun loadText(): String {
+        val src = docDef.textExtractor.extractTextFrom(path)
+        println("$path: ${src.length.toDataSize()}")
+        println(src.trimToEllipsis(70))
+        return src
     }
 
     companion object {
