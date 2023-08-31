@@ -21,7 +21,7 @@ interface TextExtractor {
 /**
  * USe the object to not allocate many instances of the text extractor
  */
-class PlainTextExtractor(val cs: SupportedCharset): TextExtractor, LogTag("PTEX") {
+class PlainTextExtractor(val cs: SupportedCharset) : TextExtractor, LogTag("PTEX") {
     override val name = "plain text"
     override fun extractTextFrom(file: Path): String = file.readText(cs.charset)
 
@@ -33,13 +33,13 @@ class PlainTextExtractor(val cs: SupportedCharset): TextExtractor, LogTag("PTEX"
         return true
     }
 
-    companion object: LogTag("PTEX") {
+    companion object : LogTag("PTEX") {
 
         fun detectCharset(file: Path): SupportedCharset? = when {
             isUTF8(file) -> SupportedCharset.UTF8
             isAscii(file) -> SupportedCharset.ASCII
             else -> {
-                info { "can't detect plain text: $file"}
+                info { "can't detect plain text: $file" }
                 null
             }
         }
@@ -82,11 +82,10 @@ class PlainTextExtractor(val cs: SupportedCharset): TextExtractor, LogTag("PTEX"
             BufferedInputStream(file.inputStream()).use { ins ->
                 for (b in ins) {
                     when (b.toUByte().toInt()) {
-                        '\t'.code, 10, 13 -> continue
-                        in 32..126 -> continue
-                        in 160..255 -> continue
+                        9, 10, 12, 13 -> continue // spaces: HT, LF, FF, CR
+                        in 32..126, in 145..156, in 158..255 -> continue
                         else -> {
-                            info { "invalid latin-1 character code ${b.toString(16)}" }
+                            info { "invalid latin-1 character code ${b.toUByte().toString(16)}" }
                             return false
                         }
                     }

@@ -7,6 +7,6 @@ fun Path.stringFromHome():String {
     val home = System.getProperty("user.home")
     val x = this.absolutePathString()
     return if (x.startsWith(home))
-        "~/" + x.substring(home.length)
+        "~" + x.substring(home.length)
     else x
 }

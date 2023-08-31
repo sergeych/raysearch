@@ -83,10 +83,10 @@ data class SearchFolder(
                                     info { "the file is invalid for ${it.typeName}: $n" }
                                     markInvalid(n)
                                 }
-                            } ?: run {
-                                info { "the file is unknown/invalid! $n" }
-                                markInvalid(n)
                             }
+//                                ?: run {
+//                                markInvalid(n)
+//                            }
                         }
 
                         else -> {
@@ -135,7 +135,7 @@ data class SearchFolder(
                 id, file.fileName.toString()
             )
             if (cnt == 1)
-                info { "updated existing file as bad: $file" }
+                debug { "updated existing file as bad: $file" }
             else
                 dbc.updateCheck(
                     1, """
@@ -144,7 +144,7 @@ data class SearchFolder(
                     """.trimIndent(),
                     file.fileName.toString(), id, Json.encodeToString(DocDef.Invalid as DocDef), file.fileSize()
                 ).also {
-                    info { "created new invalid file doc" }
+                    debug { "created new invalid file doc" }
                 }
         }
     }
@@ -173,7 +173,12 @@ data class SearchFolder(
                             || fileExists(parentPath + "/build.gradle.kts") ->
                         GradleProjectRule
 
-                    fileExists("$parentPath/node_modules") && maskExists(parentPath, "*.json") ->
+                    fileExists("$parentPath/node_modules") &&
+                            (maskExists(parentPath, "*.json")
+                                    || fileExists(parentPath+"/yarn.lock")
+                                    || fileExists(parentPath+"/kotlin_js_store")
+                                    )
+                    ->
                         NpmProjectRule
 
                     else ->

@@ -1,10 +1,10 @@
 package net.sergeych.raysearch
 
+import net.sergeych.mp_logger.LogTag
+import net.sergeych.mp_logger.debug
+import net.sergeych.mp_logger.warning
 import java.nio.file.Path
-import kotlin.io.path.extension
-import kotlin.io.path.isDirectory
-import kotlin.io.path.isHidden
-import kotlin.io.path.isSymbolicLink
+import kotlin.io.path.*
 
 /**
  * Indexing context.
@@ -18,7 +18,7 @@ import kotlin.io.path.isSymbolicLink
  * and provide default format detection for files. When extending, call the super methods
  * if no custom action is required.
  */
-open class SearchRule {
+open class SearchRule : LogTag("SRUL"){
     open fun shouldSkipDir(parent: String, dir: String): Boolean =
         dir.startsWith('.')
 
@@ -27,32 +27,66 @@ open class SearchRule {
      * for it.
      * @return text extractor or null if the file should be skipped
      */
-    open fun docDef(path: Path): DocDef? {
-        if( path.isSymbolicLink() || path.isHidden() )
+    open fun docDef(file: Path): DocDef? {
+        if( file.isSymbolicLink() || file.isHidden() )
             return null
-        if( path.isDirectory())
-            throw IllegalArgumentException("can't docFef() on directory: $path")
+        if( file.isDirectory())
+            throw IllegalArgumentException("can't docFef() on directory: $file")
 
-        val x= path.extension.lowercase()
-        return when {
-            x in noScanFileExtensions -> null
-            x in programSources -> PlainTextExtractor.detectCharset(path)?.let { DocDef.ProgramSource(it) }
-            x in plainTexts -> PlainTextExtractor.detectCharset(path)?.let { DocDef.TextDocument(it) }
-            else -> PlainTextExtractor.detectCharset(path)?.let { DocDef.TextDocument(it) }
+        val x= file.extension.lowercase()
+        return try {
+            when {
+                x in noScanFileExtensions -> null
+                x in programSources -> PlainTextExtractor.detectCharset(file)?.let { DocDef.ProgramSource(it) }
+                x in plainTexts -> PlainTextExtractor.detectCharset(file)?.let { DocDef.TextDocument(it) }
+                else -> {
+                    if( reVersionedSo in file.name) {
+                        debug { "versioned so: $file" }
+                        return null
+                    }
+                    else if( file.isExecutable() ) {
+                        try {
+                            file.inputStream().use {
+                                val shebang = it.readNBytes(2)
+                                if (shebang.size != 2 || shebang[0].toInt() != '#'.code
+                                    || shebang[1].toInt() != '!'.code
+                                )
+                                // non-script executable, won't index
+                                    return null
+                            }
+                        } catch (x: Exception) {
+                            warning { "failed to read file header: $file" }
+                            return null
+                        }
+                    }
+                    PlainTextExtractor.detectCharset(file)?.let { DocDef.TextDocument(it) }
+                }
+            }
+        }
+        catch(x: Throwable) {
+            warning { "failed to detect doc $file: $x" }
+            null
         }
     }
     companion object {
+
+        val reVersionedSo = Regex("""\.so\..*$""")
+
         val noScanFileExtensions = setOf(
-            "jpg", "jpeg,", "mp3", "png", "gif", "tif", "tiff", "bmp",
-            "mov", "wav", "mpg", "mpeg", "webp", "ico", "icns",
+            "jpg", "jpeg", "mp3", "mp4", "png", "gif", "tif", "tiff", "bmp",
+            "mov", "wav", "mpg", "mpeg", "webp", "ico", "icns", "img",
 
-            "apk", "wasm", "bin", "exe", "kexe", "lib", "o", "so", "dll", "class", "pyc",
+            "apk", "wasm", "bin", "exe", "kexe", "lib", "o", "so", "dll", "class", "pyc","pak",
+            "lib", "a", "obj",
+            "dat", "sym", "dump", "hprof", "iso", "deb", "rom", "bc", "rsa", "pem",
 
-            "dat", "sym", "dump", "hprof",
             "eot", "ttf", "woff",
-            "zsync",
+            "zsync", "ztext",
             "unikey", "unicontract",
+
             "zip", "bz2", "gz", "7z", "jar",
+            "db",
+
             // to implement soon:
             "odf", "odt", "ods", "pdf",
             "docx", "xlsx", "doc", "xls"
@@ -78,14 +112,14 @@ open class SearchNamesRule(
     val files: Set<String> = setOf()
 ) : SearchRule() {
     override fun shouldSkipDir(parent: String, dir: String): Boolean = dir in dirs
-    override fun docDef(path: Path): DocDef? =
-        if (path.fileName.toString() in files) null else super.docDef(path)
+    override fun docDef(file: Path): DocDef? =
+        if (file.fileName.toString() in files) null else super.docDef(file)
 }
 
 object DefaultSearchRule : SearchRule()
 
 object GradleProjectRule : SearchNamesRule(
-    setOf("build", "gradle"),
+    setOf("build", "gradle", "node_modules"),
     setOf("gradle.properties", "settings.gradle.kts", "gradlew", "gradlew.bat")
 )
 

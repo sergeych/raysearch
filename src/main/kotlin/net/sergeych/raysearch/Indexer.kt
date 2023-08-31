@@ -28,10 +28,6 @@ class Indexer(path: Path) : LogTag("INDX") {
 
     private val changedChannel = Channel<Unit>(0)
 
-//    suspend fun waitChanges() {
-//        changedChannel.receive()
-//    }
-// qwertyu
     private var indexDirectory: Directory = FSDirectory.open(path)
     private val writer = IndexWriter(
         indexDirectory,
@@ -41,12 +37,12 @@ class Indexer(path: Path) : LogTag("INDX") {
 
     private val access = Mutex()
 
-//    private val reAsterisk = Regex("""(?:^|[^\\])\*""")
+    //    private val reAsterisk = Regex("""(?:^|[^\\])\*""")
 //    private val reQuestion = Regex("""(?:^|[^\\])\?""")
     private val reIsLucenMask = Regex("""((?:^|[^\\])\*|(?:^|[^\\])\?)""")
 
-    suspend fun search(pattern: String): List<Result> {
-        return access.withReentrantLock {
+    suspend fun search(pattern: String, maxHits: Int = 100): List<Result> =
+        access.withReentrantLock {
             writer.commit()
             val reader = DirectoryReader.open(writer)
             val searcher = IndexSearcher(reader)
@@ -55,20 +51,15 @@ class Indexer(path: Path) : LogTag("INDX") {
                 pattern.split(" ").map { it.trim() }.forEach { src ->
                     if (src.isNotBlank()) {
                         if (src.contains(reIsLucenMask)) {
-                            add(WildcardQuery(Term(FN_CONTENT, src)),BooleanClause.Occur.SHOULD)
-                        }
-                        else {
+                            add(WildcardQuery(Term(FN_CONTENT, src)), BooleanClause.Occur.SHOULD)
+                        } else {
                             debug { "detected search mask: $src" }
                             add(TermQuery(Term(FN_CONTENT, src)), BooleanClause.Occur.SHOULD)
                         }
                     }
                 }
             }.build()
-
-
-            val res: TopDocs = searcher.search(query, 10, Sort.RELEVANCE)
-
-            res.scoreDocs.mapNotNull {
+            searcher.search(query,maxHits).scoreDocs.mapNotNull {
                 val doc = reader.storedFields().document(it.doc)
                 val id = doc.getField(FN_ID).numericValue().toLong()
                 inDb { byId<FileDoc>(id) }?.let { fd -> Result(fd) }
@@ -78,11 +69,11 @@ class Indexer(path: Path) : LogTag("INDX") {
                     }
             }
         }
-    }
 
     suspend fun commit() {
         access.withReentrantLock { writer.commit() }
     }
+
     suspend fun addDocument(fdoc: FileDoc) {
         val contentField = TextField(FN_CONTENT, fdoc.extractText(), Field.Store.NO)
         val pathField = TextField(FN_PATH, fdoc.path.pathString, Field.Store.NO)
@@ -95,7 +86,7 @@ class Indexer(path: Path) : LogTag("INDX") {
             writer.updateDocument(Term(FN_ID, fdoc.id.toString()), doc)
         }
         changedChannel.trySend(Unit)
-        info { "indexed: $fdoc" }
+        debug { "indexed: $fdoc" }
     }
 
     suspend fun deleteDocument(fdoc: FileDoc) {

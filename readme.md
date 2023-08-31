@@ -1,13 +1,23 @@
-# Missing GUI to search in indexed file content
+# Missing GUI app to search in indexed file tree content
 
-> just started
+> Work in progress, though it generally works.
 
-Reason d'être: For my 35 years of coding my sources archive is unreally big and still sometimes
-I know there is something like I need, but most I can remember is some key words or class names
-or so. The same, though much better, is with documents that before GoogleDoc era were, and after
-the last world are again as plain files, no more indexed by the cloud. Last time I was looking in my "small"
-archive (last 7 years) for one implementation using grep, it took 5 minutes on my superfast dell (well, archive
-drive was not that fast).
+The system scans and indexes files in parallel, therefire works very fats. It tries to index only the
+files it can extract the text to, so no binaries, no archives (yet), etc. It index bash seripts adn 
+shebangs, but excludes git repositories, build directories, node_moules, etc.
+
+## How to run
+
+Right now, clone it and use gradle
+
+## Why reinwenting the wheel
+
+Reason d'être is the following: For my 35 years of coding, my source archive became too big and still sometimes
+I know there is something like I need to repeat, but most I can remember exactly where. Full text search was helping
+me on the mac, but I miss in on the linux, so I'm implementing it as GUI which is more convenient for this task as
+for me. Commercial services like clouds and like are too vulnerable to international madness, so I'm doing it as open source under appropriate license (most likely apache as I'm using lucene).
+
+For examplem Last time I was looking in my "small" archive (last 7 years) with grem, it took 5 minutes on my superfast dell.
 
 As I am too old to believe again in adequate humanity, I can't believe in proprietary OS and
 clouds as tomorrow they will ban me, say, as I have a slavic name or a red polo shirt ;) Something like this already happened to me and enough is enough.

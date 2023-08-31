@@ -11,10 +11,11 @@ import net.sergeych.mp_tools.globalLaunch
 import net.sergeych.tools.Debouncer
 import kotlin.time.Duration.Companion.milliseconds
 
-object FileScanner {
+object Scanner {
 
     data class Stat(val files: Long = 0, val size: Long = 0) {
         val isEmpty: Boolean = files == 0L && size == 0L
+        operator fun plus(s: Stat): Stat = Stat(files+s.files, size + s.size)
     }
 
     data class Stats(val total: Stat = Stat(), val processed: Stat = Stat()) {
@@ -32,16 +33,17 @@ object FileScanner {
                 """
                 select count(*) as files, coalesce(sum(detected_size),0) as size 
                 from file_docs
+                where processed_mtime is null and is_bad=false
             """.trimIndent()
             )!!
             val s2 = queryRow<Stat>(
                 """
                 select count(*) as files, coalesce(sum(detected_size),0) as size
                 from file_docs
-                where processed_mtime is not null
+                where processed_mtime is not null and is_bad=false
             """.trimIndent()
             )!!
-            _stats.value = Stats(s1, s2)
+            _stats.value = Stats(s1+s2, s2)
         }
     }
 

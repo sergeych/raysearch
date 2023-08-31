@@ -43,7 +43,7 @@ class FileDoc(
             where id=?
         """.trimIndent(), file.fileSize(), id
         )
-        FileScanner.pulseChanged()
+        Scanner.pulseChanged()
     }
 
     fun markProcessed() {
