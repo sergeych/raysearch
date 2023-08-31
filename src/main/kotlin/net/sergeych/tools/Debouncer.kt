@@ -109,7 +109,7 @@ fun rememberDebouncer(
     val scope = rememberCoroutineScope()
     val debouncer = remember { Debouncer(scope, pause, maxDelay, block) }
 
-    DisposableEffect("debouncer") {
+    DisposableEffect(true) {
         onDispose {
             // and we check our param only there
             if( executeOnDispose ) debouncer.executeNow()

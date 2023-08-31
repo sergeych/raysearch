@@ -13,14 +13,21 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import net.sergeych.tools.rememberDebouncer
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun InputLine() {
+fun InputLine(onChanged: (String) -> Unit) {
     var text by remember { mutableStateOf("") }
     val fr = FocusRequester()
-
+    val changer = rememberDebouncer(300.milliseconds) {
+        onChanged(text)
+    }
     TextField(
-        text, { text = it }, Modifier.fillMaxWidth().focusRequester(fr),
+        text, {
+            text = it
+            changer.schedule()
+        }, Modifier.fillMaxWidth().focusRequester(fr),
         label = {
             Text("enter search string here")
         },

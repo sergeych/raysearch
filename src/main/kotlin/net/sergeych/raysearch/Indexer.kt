@@ -4,6 +4,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Mutex
 import net.sergeych.mp_logger.LogTag
 import net.sergeych.mp_logger.info
+import net.sergeych.mp_logger.warning
 import net.sergeych.mptools.withReentrantLock
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
@@ -14,6 +15,7 @@ import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.index.IndexWriterConfig
 import org.apache.lucene.index.Term
+import org.apache.lucene.search.*
 import org.apache.lucene.store.Directory
 import org.apache.lucene.store.FSDirectory
 import java.nio.file.Path
@@ -21,19 +23,61 @@ import kotlin.io.path.pathString
 
 class Indexer(path: Path) : LogTag("INDX") {
 
+    data class Result(val fd: FileDoc)
+
     private val changedChannel = Channel<Unit>(0)
 
-    suspend fun waitChanges() { changedChannel.receive() }
+//    suspend fun waitChanges() {
+//        changedChannel.receive()
+//    }
 
     private var indexDirectory: Directory = FSDirectory.open(path)
     private val writer = IndexWriter(
         indexDirectory,
-        IndexWriterConfig(StandardAnalyzer()).setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND)
+        IndexWriterConfig(StandardAnalyzer())
+            .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND)
     )
 
-    private val reader = DirectoryReader.open(writer)
-
     private val access = Mutex()
+
+    private val reAsterisk = Regex("""(?:^|[^\\])\*""")
+    private val reQuestion = Regex("""(?:^|[^\\])\?""")
+
+    suspend fun search(pattern: String): List<Result> {
+        return access.withReentrantLock {
+            writer.commit()
+            val reader = DirectoryReader.open(writer)
+            val searcher = IndexSearcher(reader)
+
+            val query = BooleanQuery.Builder().apply {
+                pattern.split(" ").map { it.trim() }.forEach { src ->
+                    if (src.isNotBlank()) {
+                        if (src.contains(reAsterisk) || src.contains(reQuestion) ) {
+                            println("this is Re: $src")
+                            add(WildcardQuery(Term(FN_CONTENT, src)),BooleanClause.Occur.SHOULD)
+                        }
+                        else {
+                            println("no match: $src")
+                            add(TermQuery(Term(FN_CONTENT, src)), BooleanClause.Occur.SHOULD)
+                        }
+                    }
+                }
+            }.build()
+
+
+            val res: TopDocs = searcher.search(query, 10, Sort.RELEVANCE)
+
+            res.scoreDocs.mapNotNull {
+                val doc = reader.storedFields().document(it.doc)
+                val id = doc.getField(FN_ID).numericValue().toLong()
+                inDb { byId<FileDoc>(id) }?.let { fd -> Result(fd) }
+                    ?: run {
+                        warning { "filedoc not found $id" }
+                        null
+                    }
+            }
+        }
+    }
 
     suspend fun addDocument(fdoc: FileDoc) {
         val contentField = TextField(FN_CONTENT, fdoc.extractText(), Field.Store.NO)
@@ -45,6 +89,7 @@ class Indexer(path: Path) : LogTag("INDX") {
         doc.add(idField)
         access.withReentrantLock {
             writer.updateDocument(Term(FN_ID, fdoc.id.toString()), doc)
+            writer.commit()
         }
         changedChannel.trySend(Unit)
         info { "indexed: $fdoc" }

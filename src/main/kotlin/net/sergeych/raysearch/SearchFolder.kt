@@ -89,7 +89,6 @@ data class SearchFolder(
                 }
                 known.remove(n.name)
             }
-            // todo: remove from index files that no longer exists!
             for( fd in known.values ) fd.delete()
         }
     }
