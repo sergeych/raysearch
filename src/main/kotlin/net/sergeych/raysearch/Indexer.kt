@@ -3,6 +3,7 @@ package net.sergeych.raysearch
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Mutex
 import net.sergeych.mp_logger.LogTag
+import net.sergeych.mp_logger.debug
 import net.sergeych.mp_logger.info
 import net.sergeych.mp_logger.warning
 import net.sergeych.mptools.withReentrantLock
@@ -30,7 +31,7 @@ class Indexer(path: Path) : LogTag("INDX") {
 //    suspend fun waitChanges() {
 //        changedChannel.receive()
 //    }
-
+// qwertyu
     private var indexDirectory: Directory = FSDirectory.open(path)
     private val writer = IndexWriter(
         indexDirectory,
@@ -40,8 +41,9 @@ class Indexer(path: Path) : LogTag("INDX") {
 
     private val access = Mutex()
 
-    private val reAsterisk = Regex("""(?:^|[^\\])\*""")
-    private val reQuestion = Regex("""(?:^|[^\\])\?""")
+//    private val reAsterisk = Regex("""(?:^|[^\\])\*""")
+//    private val reQuestion = Regex("""(?:^|[^\\])\?""")
+    private val reIsLucenMask = Regex("""((?:^|[^\\])\*|(?:^|[^\\])\?)""")
 
     suspend fun search(pattern: String): List<Result> {
         return access.withReentrantLock {
@@ -52,12 +54,11 @@ class Indexer(path: Path) : LogTag("INDX") {
             val query = BooleanQuery.Builder().apply {
                 pattern.split(" ").map { it.trim() }.forEach { src ->
                     if (src.isNotBlank()) {
-                        if (src.contains(reAsterisk) || src.contains(reQuestion) ) {
-                            println("this is Re: $src")
+                        if (src.contains(reIsLucenMask)) {
                             add(WildcardQuery(Term(FN_CONTENT, src)),BooleanClause.Occur.SHOULD)
                         }
                         else {
-                            println("no match: $src")
+                            debug { "detected search mask: $src" }
                             add(TermQuery(Term(FN_CONTENT, src)), BooleanClause.Occur.SHOULD)
                         }
                     }
@@ -79,6 +80,9 @@ class Indexer(path: Path) : LogTag("INDX") {
         }
     }
 
+    suspend fun commit() {
+        access.withReentrantLock { writer.commit() }
+    }
     suspend fun addDocument(fdoc: FileDoc) {
         val contentField = TextField(FN_CONTENT, fdoc.extractText(), Field.Store.NO)
         val pathField = TextField(FN_PATH, fdoc.path.pathString, Field.Store.NO)
@@ -89,7 +93,6 @@ class Indexer(path: Path) : LogTag("INDX") {
         doc.add(idField)
         access.withReentrantLock {
             writer.updateDocument(Term(FN_ID, fdoc.id.toString()), doc)
-            writer.commit()
         }
         changedChannel.trySend(Unit)
         info { "indexed: $fdoc" }

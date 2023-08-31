@@ -24,8 +24,8 @@ To me or to whom it many concern.
 Scanned directories and files are stored in the H2 database to determine which ones require re-scanning.
 ScanFolder records create ScanFile records which are sort of tasks to perform in the background. I plan to load 10-15% of cores with indexing this way. Rescans could be then implementing watching fs events and browsing folders with changed mtime.
 
-- SearchFolder is a DB held model of folder tree structire. Used to discover changes and walk the tree.
-  - it is possible to have more than one root SearchFilder to index separated trees (e.g. with mountable media)
+- SearchFolder is a DB-held model of folder tree structire. Used to discover changes and walk the tree.
+  - it is possible to have more than one root SearchFilder to index separated trees (e.g., with mountable media)
 - FileDoc is a single file record in the DB, contains its last known (processed) mtime and size and the detected suitable text extratror.
 - FileScanner works in the background peeking changed/new files (provided by SeachFolder.rescan)
 - UI uses compose. So far so good, but I hate the fonts.

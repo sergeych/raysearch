@@ -1,5 +1,8 @@
 package net.sergeych.raysearch
 
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import net.sergeych.kotyara.db.*
@@ -37,59 +40,66 @@ data class SearchFolder(
     }
 
     suspend fun rescan(cachedPath: String = pathString) {
-        val p = Paths.get(cachedPath)
-        val rule by lazy { getRule(cachedPath) }
-        val known = files().map { it.fileName to it}.toMap().toMutableMap()
-        if (!p.exists()) {
-            isOk = false
-            db { destroy(it) }
-            info { "path $cachedPath is deleted, removing from the database" }
-        } else {
-            for (n in p.listDirectoryEntries("*")) {
-                if( known[n.name]?.isBad == true )
-                    debug { "skipping known bad file $n" }
-                else when {
-                    n.name == "tmp" -> {
-                        debug { "skipping tmp" }
-                    }
-
-                    n.name[0] == '.' -> {
-                        debug { "skipping dot file $n" }
-                    } // skip
-                    n.isHidden() -> {
-                        debug { "ignoring hidden file $n" }
-                    }
-
-                    n.isDirectory() -> {
-                        if (!rule.shouldSkipDir(pathString, n.name)) {
-                            debug { "processing directory $n" }
-                            get(id, n).rescan(n.pathString)
+        try {
+            if( parentId == null)
+                startScanning(id)
+            val p = Paths.get(cachedPath)
+            val rule by lazy { getRule(cachedPath) }
+            val known = files().map { it.fileName to it }.toMap().toMutableMap()
+            if (!p.exists()) {
+                isOk = false
+                db { destroy(it) }
+                info { "path $cachedPath is deleted, removing from the database" }
+            } else {
+                for (n in p.listDirectoryEntries("*")) {
+                    if (known[n.name]?.isBad == true)
+                        debug { "skipping known bad file $n" }
+                    else when {
+                        n.name == "tmp" -> {
+                            debug { "skipping tmp" }
                         }
-                    }
 
-                    n.isRegularFile() -> {
-                        // if the rule gives not dd - we can't process the file
-                        rule.docDef(n)?.let {
-                            // and event if it gives, it could be invalid in theory
-                            if (it.textExtractor.isValid(n))
-                                checkFile(it, n)
-                            else {
-                                info { "the file is invalid for ${it.typeName}: $n" }
+                        n.name[0] == '.' -> {
+                            debug { "skipping dot file $n" }
+                        } // skip
+                        n.isHidden() -> {
+                            debug { "ignoring hidden file $n" }
+                        }
+
+                        n.isDirectory() -> {
+                            if (!rule.shouldSkipDir(pathString, n.name)) {
+                                debug { "processing directory $n" }
+                                get(id, n).rescan(n.pathString)
+                            }
+                        }
+
+                        n.isRegularFile() -> {
+                            // if the rule gives not dd - we can't process the file
+                            rule.docDef(n)?.let {
+                                // and event if it gives, it could be invalid in theory
+                                if (it.textExtractor.isValid(n))
+                                    checkFile(it, n)
+                                else {
+                                    info { "the file is invalid for ${it.typeName}: $n" }
+                                    markInvalid(n)
+                                }
+                            } ?: run {
+                                info { "the file is unknown/invalid! $n" }
                                 markInvalid(n)
                             }
-                        } ?: run {
-                            info { "the file is unknown/invalid! $n" }
-                            markInvalid(n)
+                        }
+
+                        else -> {
+                            info { "no idea what to do with $n" }
                         }
                     }
-
-                    else -> {
-                        info { "no idea what to do with $n" }
-                    }
+                    known.remove(n.name)
                 }
-                known.remove(n.name)
+                for (fd in known.values) fd.delete()
             }
-            for( fd in known.values ) fd.delete()
+        }
+        finally {
+            if( parentId == null ) stopScanning(id)
         }
     }
 
@@ -130,7 +140,7 @@ data class SearchFolder(
                 dbc.updateCheck(
                     1, """
                     insert into file_docs(file_name, search_folder_id, doc_def, detected_size, is_bad, processed_mtime)
-                    values(?,?,?,?,false,now())
+                    values(?,?,?,?,true,now())
                     """.trimIndent(),
                     file.fileName.toString(), id, Json.encodeToString(DocDef.Invalid as DocDef), file.fileSize()
                 ).also {
@@ -168,6 +178,29 @@ data class SearchFolder(
 
                     else ->
                         DefaultSearchRule
+                }
+            }
+        }
+
+        private val _isScanning = MutableStateFlow<Boolean>(false)
+        val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
+
+        private val scanningRootIds = mutableSetOf<Long>()
+        protected fun startScanning(rootId: Long) {
+            synchronized(scanningRootIds) {
+                if( scanningRootIds.isEmpty() )
+                    _isScanning.value = true
+                scanningRootIds += rootId
+            }
+        }
+
+        protected fun stopScanning(rootId: Long) {
+            synchronized(scanningRootIds) {
+                println("stops $scanningRootIds: stop $rootId")
+                scanningRootIds -= rootId
+                println("now $scanningRootIds")
+                if( scanningRootIds.isEmpty()) {
+                    _isScanning.value = false
                 }
             }
         }

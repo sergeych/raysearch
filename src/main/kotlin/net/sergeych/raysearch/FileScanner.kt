@@ -50,15 +50,18 @@ object FileScanner {
     fun startScanner() {
         globalLaunch {
             while(isActive) {
-                val fd = FileDoc.firstNotProcessed()
-                if (fd != null) {
-                    indexer.addDocument(fd)
-                    fd.markProcessed()
-                    fd.loadText()
+                val fds = FileDoc.firstNotProcessed(50)
+                if( fds.isEmpty())
+                    scannerPulser.receive()
+                else {
+                    for (fd in fds) {
+                        indexer.addDocument(fd)
+                        fd.markProcessed()
+                        fd.loadText()
+                    }
+                    indexer.commit()
                     changeBouncer.schedule()
                 }
-                else
-                    scannerPulser.receive()
             }
         }
     }

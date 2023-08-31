@@ -71,8 +71,13 @@ class FileDoc(
     }
 
     companion object {
-        suspend fun firstNotProcessed(): FileDoc? =
-            inDb { findWhere<FileDoc>("processed_mtime is null and not is_bad") }
+        suspend fun firstNotProcessed(count: Int = 10): List<FileDoc> =
+            inDb {
+                query(
+                    "select * from file_docs where processed_mtime is null and not is_bad limit ?",
+                    count
+                )
+            }
 
         suspend fun get(folder: SearchFolder, name: String): FileDoc? =
             inDb { findBy("search_folder_id" to folder.id, "file_name" to name) }

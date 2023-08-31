@@ -22,7 +22,7 @@ fun deleteDb() {
 }
 
 val database by lazy {
-//    deleteDb()
+    deleteDb()
     Files.createDirectories(h2Home)
     Files.createDirectories(lucenHome)    // init lucene
     Class.forName("org.h2.Driver")
