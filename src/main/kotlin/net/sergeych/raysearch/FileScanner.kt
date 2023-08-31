@@ -1,9 +1,8 @@
 package net.sergeych.raysearch
 
-import inDb
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,18 +45,20 @@ object FileScanner {
         }
     }
 
+    private val scannerPulser = Channel<Unit>(0)
+
     fun startScanner() {
         globalLaunch {
             while(isActive) {
                 val fd = FileDoc.firstNotProcessed()
                 if (fd != null) {
-//                    println(fd.path)
+                    indexer.addDocument(fd)
                     fd.markProcessed()
                     fd.loadText()
                     changeBouncer.schedule()
-                    delay(1)
                 }
-                else delay(500)
+                else
+                    scannerPulser.receive()
             }
         }
     }
@@ -65,6 +66,7 @@ object FileScanner {
 
     fun pulseChanged() {
         changeBouncer.schedule()
+        scannerPulser.trySend(Unit)
     }
 
     init {

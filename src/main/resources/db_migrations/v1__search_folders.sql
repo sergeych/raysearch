@@ -1,8 +1,7 @@
 create table search_folders(
     id bigint auto_increment primary key ,
     parent_id bigint references search_folders(id) on delete cascade,
-    name varchar not null,
-    checked_mtime timestamp
+    name varchar not null
 );
 
 create index ix_folders_parent on search_folders(parent_id);
@@ -16,9 +15,10 @@ create table file_docs(
     detected_size bigint not null,
     doc_def json not null,
     processed_size bigint,
-    processed_mtime timestamp
+    processed_mtime timestamp,
+    is_bad BOOLEAN not null default false
 );
 
 create index ix_file_folder on file_docs(search_folder_id,file_name);
 
-create index ix_file_processed on file_docs(search_folder_id,processed_mtime);
+create index ix_file_processed on file_docs(processed_mtime,is_bad);

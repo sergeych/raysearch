@@ -1,18 +1,8 @@
 package net.sergeych.raysearch
 
-import byIdOrThrow
-import db
-import dbs
-import inDb
-import inDbs
-import kotlinx.datetime.Instant
-import kotlinx.datetime.toKotlinInstant
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import net.sergeych.kotyara.db.DbContext
-import net.sergeych.kotyara.db.Identifiable
-import net.sergeych.kotyara.db.destroy
-import net.sergeych.kotyara.db.updateAndReturn
+import net.sergeych.kotyara.db.*
 import net.sergeych.mp_logger.LogTag
 import net.sergeych.mp_logger.Loggable
 import net.sergeych.mp_logger.debug
@@ -25,7 +15,6 @@ data class SearchFolder(
     override val id: Long,
     val parentId: Long? = 0,
     val name: String,
-    val checkedMtime: Instant? = null,
 ) : Identifiable<Long>, Loggable by LogTag("SF:$id:$name") {
 
 
@@ -43,7 +32,7 @@ data class SearchFolder(
     var isOk: Boolean = true
         private set
 
-    suspend fun rescan(cachedPath: String = pathString): SearchFolder {
+    suspend fun rescan(cachedPath: String = pathString) {
         val p = Paths.get(cachedPath)
         val rule by lazy { getRule(cachedPath) }
         if (!p.exists()) {
@@ -51,47 +40,52 @@ data class SearchFolder(
             db { destroy(it) }
             info { "path $cachedPath is deleted, removing from the database" }
         } else {
-            val mtime = p.getLastModifiedTime().toInstant().toKotlinInstant()
-            if (checkedMtime == mtime) {
-                debug { "mtime is not changed, skipping" }
-            } else {
-                for (n in p.listDirectoryEntries("*")) {
-                    when {
-                        n.name == "tmp" -> {
-                            debug { "skiping tmp" }
-                        }
+            for (n in p.listDirectoryEntries("*")) {
+                val fd = FileDoc.get(this, n.name)
+                    if( fd?.isBad == true)
+                        debug { "skipping known bad file $n" }
+                else when {
+                    n.name == "tmp" -> {
+                        debug { "skipping tmp" }
+                    }
 
-                        n.name[0] == '.' -> {
-                            debug { "skipping dot file $n" }
-                        } // skip
-                        n.isHidden() -> {
-                            debug { "ignoring hidden file $n" }
-                        }
+                    n.name[0] == '.' -> {
+                        debug { "skipping dot file $n" }
+                    } // skip
+                    n.isHidden() -> {
+                        debug { "ignoring hidden file $n" }
+                    }
 
-                        n.isDirectory() -> {
-                            if (!rule.shouldSkipDir(pathString, n.name)) {
-                                debug { "processing directory $n" }
-                                get(id, n).rescan(n.pathString)
-                            }
-                        }
-
-                        n.isRegularFile() -> {
-                            rule.textExtractor(n)?.let { checkFile(it, n) }
+                    n.isDirectory() -> {
+                        if (!rule.shouldSkipDir(pathString, n.name)) {
+                            debug { "processing directory $n" }
+                            get(id, n).rescan(n.pathString)
                         }
                     }
-                }
-                // todo: remove from index files that no longer exists!
-                // todo: mark directory scanned by mtime to speedup next scan
-                return inDb {
-                    update(
-                        "update search_folders set checked_mtime=? where id=?",
-                        mtime, id
-                    )
-                    copy(checkedMtime = mtime)
+
+                    n.isRegularFile() -> {
+                        // if the rule gives not dd - we can't process the file
+                        rule.docDef(n)?.let {
+                            // and event if it gives, it could be invalid in theory
+                            if (it.textExtractor.isValid(n))
+                                checkFile(it, n)
+                            else {
+                                info { "the file is invalid for ${it.typeName}: $n" }
+                                markInvalid(n)
+                            }
+                        } ?: run {
+                            info { "the file is unknown/invalid! $n" }
+                            markInvalid(n)
+                        }
+                    }
+
+                    else -> {
+                        info { "no idea what to do with $n" }
+                    }
                 }
             }
+            // todo: remove from index files that no longer exists!
         }
-        return this
     }
 
     suspend fun checkFile(dd: DocDef, file: Path) {
@@ -113,6 +107,30 @@ data class SearchFolder(
                     values(?,?,?,?)""".trimIndent(),
                     file.fileName.toString(), id, Json.encodeToString(dd), file.fileSize()
                 ).also { it.requestRescan(dbc, file) }
+        }
+    }
+
+    suspend fun markInvalid(file: Path) {
+        db { dbc ->
+            val cnt = dbc.update(
+                """
+                    update file_docs 
+                    set processed_mtime=now(), is_bad=true 
+                    where search_folder_id=? and file_name=?""".trimIndent(),
+                id, file.fileName.toString()
+            )
+            if (cnt == 1)
+                info { "updated existing file as bad: $file" }
+            else
+                dbc.updateCheck(
+                    1, """
+                    insert into file_docs(file_name, search_folder_id, doc_def, detected_size, is_bad, processed_mtime)
+                    values(?,?,?,?,false,now())
+                    """.trimIndent(),
+                    file.fileName.toString(), id, Json.encodeToString(DocDef.Invalid as DocDef), file.fileSize()
+                ).also {
+                    info { "created new invalid file doc" }
+                }
         }
     }
 
@@ -144,7 +162,7 @@ data class SearchFolder(
                         NpmProjectRule
 
                     else ->
-                        NoSearchRule
+                        DefaultSearchRule
                 }
             }
         }

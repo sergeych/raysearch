@@ -3,6 +3,12 @@ package net.sergeych.raysearch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.sergeych.kotyara.db.DbJson
+import java.nio.charset.Charset
+
+enum class SupportedCharset(val charset: Charset) {
+    UTF8(Charsets.UTF_8),
+    ASCII(Charsets.ISO_8859_1)
+}
 
 /**
  * Doc definition allows us to store how the document should be treated
@@ -18,16 +24,25 @@ sealed class DocDef {
     @Serializable
     @DbJson
     @SerialName("txt")
-    object TextDocument : DocDef() {
-        override val textExtractor: TextExtractor get() = PlainTextExtractor
+    class TextDocument(val cs: SupportedCharset) : DocDef() {
+        override val textExtractor: TextExtractor get() = PlainTextExtractor(cs)
         override val typeName: String = "plain text"
     }
 
     @Serializable
     @DbJson
     @SerialName("src")
-    object ProgramSource : DocDef() {
-        override val textExtractor: TextExtractor get() = PlainTextExtractor
+    class ProgramSource(val cs: SupportedCharset) : DocDef() {
+        override val textExtractor: TextExtractor get() = PlainTextExtractor(cs)
         override val typeName: String = "source program"
+    }
+
+    @Serializable
+    @DbJson
+    @SerialName("bad")
+    object Invalid : DocDef() {
+        override val textExtractor: TextExtractor
+            get() = throw IllegalArgumentException("can't extract text on the invalid file")
+        override val typeName = "invalid"
     }
 }

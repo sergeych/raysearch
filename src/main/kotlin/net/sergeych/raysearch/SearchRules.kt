@@ -2,6 +2,9 @@ package net.sergeych.raysearch
 
 import java.nio.file.Path
 import kotlin.io.path.extension
+import kotlin.io.path.isDirectory
+import kotlin.io.path.isHidden
+import kotlin.io.path.isSymbolicLink
 
 /**
  * Indexing context.
@@ -24,36 +27,46 @@ open class SearchRule {
      * for it.
      * @return text extractor or null if the file should be skipped
      */
-    open fun textExtractor(path: Path): DocDef? =
-        if (path.extension.lowercase() in noScanFileExtensions) null
-        else extensionTypes[path.extension] ?: DocDef.TextDocument
+    open fun docDef(path: Path): DocDef? {
+        if( path.isSymbolicLink() || path.isHidden() )
+            return null
+        if( path.isDirectory())
+            throw IllegalArgumentException("can't docFef() on directory: $path")
 
+        val x= path.extension.lowercase()
+        return when {
+            x in noScanFileExtensions -> null
+            x in programSources -> PlainTextExtractor.detectCharset(path)?.let { DocDef.ProgramSource(it) }
+            x in plainTexts -> PlainTextExtractor.detectCharset(path)?.let { DocDef.TextDocument(it) }
+            else -> PlainTextExtractor.detectCharset(path)?.let { DocDef.TextDocument(it) }
+        }
+    }
     companion object {
         val noScanFileExtensions = setOf(
-            "jpg", "png", "gif", "mov", "wav", "mpg", "mpeg",
-            "wasm", "bin", "exe", "kexe", "lib", "o", "so", "dll", "class", "pyc",
-            "dat", "sym",
+            "jpg", "jpeg,", "mp3", "png", "gif", "tif", "tiff", "bmp",
+            "mov", "wav", "mpg", "mpeg", "webp", "ico", "icns",
+
+            "apk", "wasm", "bin", "exe", "kexe", "lib", "o", "so", "dll", "class", "pyc",
+
+            "dat", "sym", "dump", "hprof",
+            "eot", "ttf", "woff",
+            "zsync",
+            "unikey", "unicontract",
             "zip", "bz2", "gz", "7z", "jar",
             // to implement soon:
             "odf", "odt", "ods", "pdf",
             "docx", "xlsx", "doc", "xls"
         )
 
-        val extensionTypes = mutableMapOf<String, DocDef>()
-
-        init {
-            fun a(dd: DocDef, vararg exts: String) {
-                for (x in exts) extensionTypes[x] = dd
-            }
-            a(
-                DocDef.ProgramSource,
-                "c", "cpp", "c++", "cxx", "h", "h++", "hpp", "objc", "rs",
-                "java", "scala", "kt", "gradle",
-                "sql",
-                "rb", "py", "pl", "js", "ts", "sh",
-            )
-            a( DocDef.TextDocument, "txt", "md")
-        }
+        val programSources = setOf(
+            "c", "cpp", "c++", "cxx", "h", "h++", "hpp", "objc", "rs",
+            "java", "scala", "kt", "gradle",
+            "sql",
+            "rb", "py", "pl", "js", "ts", "sh",
+        )
+        val plainTexts = setOf(
+            "txt", "md", "me"
+        )
     }
 }
 
@@ -65,11 +78,11 @@ open class SearchNamesRule(
     val files: Set<String> = setOf()
 ) : SearchRule() {
     override fun shouldSkipDir(parent: String, dir: String): Boolean = dir in dirs
-    override fun textExtractor(path: Path): DocDef? =
-        if (path.fileName.toString() in files) null else super.textExtractor(path)
+    override fun docDef(path: Path): DocDef? =
+        if (path.fileName.toString() in files) null else super.docDef(path)
 }
 
-object NoSearchRule : SearchRule()
+object DefaultSearchRule : SearchRule()
 
 object GradleProjectRule : SearchNamesRule(
     setOf("build", "gradle"),

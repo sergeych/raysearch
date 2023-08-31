@@ -1,15 +1,11 @@
 package net.sergeych.raysearch
 
-import dbs
-import inDb
 import kotlinx.datetime.Instant
 import net.sergeych.kotyara.db.DbContext
 import net.sergeych.kotyara.db.Identifiable
 import net.sergeych.kotyara.db.hasOne
 import net.sergeych.mp_logger.LogTag
 import net.sergeych.mp_logger.Loggable
-import net.sergeych.mp_tools.toDataSize
-import net.sergeych.mp_tools.trimToEllipsis
 import java.nio.file.Path
 import kotlin.io.path.fileSize
 import kotlin.io.path.getLastModifiedTime
@@ -19,6 +15,7 @@ class FileDoc(
     val fileName: String,
     val searchFolderId: Long,
     val docDef: DocDef,
+    val isBad: Boolean = false,
     val processedMtime: Instant? = null,
     @Suppress("unused") val detectedSize: Long = 0,
     val processedSize: Long? = null,
@@ -34,11 +31,14 @@ class FileDoc(
         folder.path.resolve(fileName)
     }
 
+    fun extractText(): String =
+        docDef.textExtractor.extractTextFrom(path)
+
     fun requestRescan(dbc: DbContext, file: Path) {
         dbc.update(
             """
             update file_docs
-            set processed_mtime = null, processed_size = null, detected_size = ?
+            set processed_mtime = null, processed_size = null, is_bad = false, detected_size = ?
             where id=?
         """.trimIndent(), file.fileSize(), id
         )
@@ -56,12 +56,15 @@ class FileDoc(
 
     fun loadText(): String {
         val src = docDef.textExtractor.extractTextFrom(path)
-        println("$path: ${src.length.toDataSize()}")
-        println(src.trimToEllipsis(70))
         return src
     }
 
+    override fun toString(): String = logTag
+
     companion object {
-        suspend fun firstNotProcessed(): FileDoc? = inDb { findWhere<FileDoc>("processed_mtime is null") }
+        suspend fun firstNotProcessed(): FileDoc? = inDb { findWhere<FileDoc>("processed_mtime is null and not is_bad") }
+
+        suspend fun get(folder: SearchFolder,name: String): FileDoc? =
+            inDb { findBy("search_folder_id" to folder.id, "file_name" to name) }
     }
 }
