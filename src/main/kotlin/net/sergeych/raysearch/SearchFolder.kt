@@ -32,18 +32,22 @@ data class SearchFolder(
     var isOk: Boolean = true
         private set
 
+    suspend fun files() = inDb {
+        select<FileDoc>().where("search_folder_id=?", id).all
+    }
+
     suspend fun rescan(cachedPath: String = pathString) {
         val p = Paths.get(cachedPath)
         val rule by lazy { getRule(cachedPath) }
+        val known = files().map { it.fileName to it}.toMap().toMutableMap()
         if (!p.exists()) {
             isOk = false
             db { destroy(it) }
             info { "path $cachedPath is deleted, removing from the database" }
         } else {
             for (n in p.listDirectoryEntries("*")) {
-                val fd = FileDoc.get(this, n.name)
-                    if( fd?.isBad == true)
-                        debug { "skipping known bad file $n" }
+                if( known[n.name]?.isBad == true )
+                    debug { "skipping known bad file $n" }
                 else when {
                     n.name == "tmp" -> {
                         debug { "skipping tmp" }
@@ -83,8 +87,10 @@ data class SearchFolder(
                         info { "no idea what to do with $n" }
                     }
                 }
+                known.remove(n.name)
             }
             // todo: remove from index files that no longer exists!
+            for( fd in known.values ) fd.delete()
         }
     }
 
