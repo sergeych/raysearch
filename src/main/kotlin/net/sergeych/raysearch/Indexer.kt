@@ -45,7 +45,7 @@ class Indexer(path: Path) : LogTag("INDX") {
             val searcher = IndexSearcher(reader)
 
             val query = BooleanQuery.Builder().apply {
-                pattern.split(" ").map { it.trim() }.forEach { src ->
+                pattern.split(" ").map { it.trim().lowercase() }.forEach { src ->
                     if (src.isNotBlank()) {
                         if (src.contains(reIsLucenMask)) {
                             add(WildcardQuery(Term(FN_CONTENT, src)), BooleanClause.Occur.SHOULD)
