@@ -8,10 +8,7 @@ import net.sergeych.mp_logger.info
 import net.sergeych.mp_logger.warning
 import net.sergeych.mptools.withReentrantLock
 import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.document.Document
-import org.apache.lucene.document.Field
-import org.apache.lucene.document.LongField
-import org.apache.lucene.document.TextField
+import org.apache.lucene.document.*
 import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.index.IndexWriterConfig
@@ -83,7 +80,8 @@ class Indexer(path: Path) : LogTag("INDX") {
         doc.add(pathField)
         doc.add(idField)
         access.withReentrantLock {
-            writer.updateDocument(Term(FN_ID, fdoc.id.toString()), doc)
+            deleteDocument(fdoc)
+            writer.addDocument(doc)
         }
         changedChannel.trySend(Unit)
         debug { "indexed: $fdoc" }
@@ -91,7 +89,7 @@ class Indexer(path: Path) : LogTag("INDX") {
 
     suspend fun deleteDocument(fdoc: FileDoc) {
         access.withReentrantLock {
-            writer.deleteDocuments(Term(FN_ID, fdoc.id.toString()))
+            writer.deleteDocuments(LongPoint.newRangeQuery(FN_ID,fdoc.id, fdoc.id))
         }
         changedChannel.trySend(Unit)
         info { "deleted: $fdoc" }

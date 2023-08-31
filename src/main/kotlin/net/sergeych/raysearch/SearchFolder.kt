@@ -201,9 +201,7 @@ data class SearchFolder(
 
         protected fun stopScanning(rootId: Long) {
             synchronized(scanningRootIds) {
-                println("stops $scanningRootIds: stop $rootId")
                 scanningRootIds -= rootId
-                println("now $scanningRootIds")
                 if( scanningRootIds.isEmpty()) {
                     _isScanning.value = false
                 }

@@ -73,7 +73,6 @@ fun ScanProgressBar(modifier: Modifier = Modifier.fillMaxWidth()) {
             launch {
                 SearchFolder.isScanning.collect {
                     scanning = it
-                    println("scanning $it")
                 }
             }
         }

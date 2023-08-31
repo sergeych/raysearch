@@ -6,6 +6,8 @@ create table search_folders(
 
 create index ix_folders_parent on search_folders(parent_id);
 
+create unique index ix_folder_pos on search_folders(parent_id, name);
+
 create index ix_folders_name on search_folders(name);
 
 create table file_docs(
@@ -19,6 +21,6 @@ create table file_docs(
     is_bad BOOLEAN not null default false
 );
 
-create index ix_file_folder on file_docs(search_folder_id,file_name);
+create unique index ix_file_folder on file_docs(search_folder_id,file_name);
 
 create index ix_file_processed on file_docs(processed_mtime,is_bad);

@@ -30,6 +30,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
     implementation("br.com.devsrsouza.compose.icons:feather:1.1.0")
     implementation("org.apache.lucene:lucene-core:9.7.0")
+    implementation("org.apache.lucene:lucene-queries:9.7.0")
 
     testImplementation(kotlin("test"))
 }
