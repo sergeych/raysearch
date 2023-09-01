@@ -37,13 +37,14 @@ dependencies {
 }
 
 compose.desktop {
+
     application {
         mainClass = "MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "raysearch"
-            packageVersion = "1.0.0"
+            packageVersion = "1.0.1"
         }
     }
 }
@@ -52,4 +53,24 @@ tasks.named<KotlinCompilationTask<*>>("compileKotlin").configure {
 //    compilerOptions.freeCompilerArgs.add("-opt-in=kotlinx.serialization.ExperimentalSerializationApi")
 //    compilerOptions.freeCompilerArgs.add("-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi")
     compilerOptions.freeCompilerArgs.add("-opt-in= kotlinx.coroutines.DelicateCoroutinesApi.class \n")
+}
+
+compose.desktop {
+    application {
+        buildTypes.release.proguard {
+//            obfuscate.set(false)
+//            isEnabled.set(false)
+        }
+        nativeDistributions {
+            modules("java.sql","java.instrument", "java.sql", "jdk.unsupported", "jdk.zipfs")
+//            includeAllModules = true
+            description = "File content indexing (text) and fast search"
+//            copyright = "© 2023 Sergey S. Chernov. All rights reserved."
+//            vendor = "8 rays dev"
+            linux {
+                iconFile.set(project.file("icon.png"))
+            }
+//            licenseFile.set(project.file("LICENSE.txt"))
+        }
+    }
 }
