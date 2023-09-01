@@ -1,15 +1,14 @@
 package net.sergeych.raysearch
 
+import net.sergeych.appHomePath
 import net.sergeych.kotyara.Database
 import net.sergeych.kotyara.db.DbContext
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 
-val home = Paths.get(System.getProperty("user.home") + "/.rayscan")
-val h2Home = home + "db"
-val lucenHome = home + "lucen"
+val h2Home = appHomePath + "db"
+val lucenHome = appHomePath + "lucen"
 
 operator fun Path.plus(other: String): Path = resolve(other)
 operator fun Path.plus(other: Path): Path = resolve(other)
@@ -22,11 +21,11 @@ fun deleteDb() {
 }
 
 val database by lazy {
-//    deleteDb()
+    deleteDb()
     Files.createDirectories(h2Home)
     Files.createDirectories(lucenHome)    // init lucene
     Class.forName("org.h2.Driver")
-    Database("jdbc:h2:$home/db/rayscan", 10, null)
+    Database("jdbc:h2:$appHomePath/db/rayscan", 10, null)
         .also { it.migrateWithResources(object {}::class.java) }
 }
 

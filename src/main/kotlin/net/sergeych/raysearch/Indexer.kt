@@ -1,10 +1,10 @@
 package net.sergeych.raysearch
 
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.sync.Mutex
 import net.sergeych.mp_logger.LogTag
 import net.sergeych.mp_logger.debug
-import net.sergeych.mp_logger.info
 import net.sergeych.mp_logger.warning
 import net.sergeych.mptools.withReentrantLock
 import org.apache.lucene.analysis.standard.StandardAnalyzer
@@ -25,6 +25,8 @@ class Indexer(path: Path) : LogTag("INDX") {
 
     private val changedChannel = Channel<Unit>(0)
 
+    val changed: ReceiveChannel<Unit> = changedChannel
+
     private var indexDirectory: Directory = FSDirectory.open(path)
     private val writer = IndexWriter(
         indexDirectory,
@@ -34,9 +36,7 @@ class Indexer(path: Path) : LogTag("INDX") {
 
     private val access = Mutex()
 
-    //    private val reAsterisk = Regex("""(?:^|[^\\])\*""")
-//    private val reQuestion = Regex("""(?:^|[^\\])\?""")
-    private val reIsLucenMask = Regex("""((?:^|[^\\])\*|(?:^|[^\\])\?)""")
+    private val reIsLuceneMask = Regex("""((?:^|[^\\])\*|(?:^|[^\\])\?)""")
 
     suspend fun search(pattern: String, maxHits: Int = 100): List<Result> =
         access.withReentrantLock {
@@ -47,11 +47,11 @@ class Indexer(path: Path) : LogTag("INDX") {
             val query = BooleanQuery.Builder().apply {
                 pattern.split(" ").map { it.trim().lowercase() }.forEach { src ->
                     if (src.isNotBlank()) {
-                        if (src.contains(reIsLucenMask)) {
-                            add(WildcardQuery(Term(FN_CONTENT, src)), BooleanClause.Occur.SHOULD)
+                        if (src.contains(reIsLuceneMask)) {
+                            add(WildcardQuery(Term(FN_CONTENT, src)), BooleanClause.Occur.MUST)
                         } else {
                             debug { "detected search mask: $src" }
-                            add(TermQuery(Term(FN_CONTENT, src)), BooleanClause.Occur.SHOULD)
+                            add(TermQuery(Term(FN_CONTENT, src)), BooleanClause.Occur.MUST)
                         }
                     }
                 }
@@ -92,7 +92,7 @@ class Indexer(path: Path) : LogTag("INDX") {
             writer.deleteDocuments(LongPoint.newRangeQuery(FN_ID,fdoc.id, fdoc.id))
         }
         changedChannel.trySend(Unit)
-        info { "deleted: $fdoc" }
+        debug { "deleted from index: $fdoc" }
     }
 
     companion object {

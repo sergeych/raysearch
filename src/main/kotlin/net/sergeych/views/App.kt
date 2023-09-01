@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.isActive
 import net.sergeych.raysearch.Indexer
 import net.sergeych.raysearch.indexer
 import net.sergeych.tools.rememberDebouncer
@@ -20,14 +21,12 @@ import kotlin.time.Duration.Companion.milliseconds
 @Preview
 fun App() {
     MaterialTheme {
-        Column(
-//            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
+        Column {
             var pattern by remember { mutableStateOf("") }
             var busy by remember { mutableStateOf(false) }
             var nothingFound by remember { mutableStateOf(false) }
             val list = remember { mutableStateListOf<Indexer.Result>() }
-            val deb = rememberDebouncer(250.milliseconds, 250.milliseconds) {
+            val deb = rememberDebouncer(410.milliseconds, 2000.milliseconds) {
                 if (pattern == "") list.clear()
                 else {
                     busy = true
@@ -39,8 +38,22 @@ fun App() {
                     busy = false
                 }
             }
+            LaunchedEffect(true) {
+                while(isActive) {
+                    indexer.changed.receive()
+                    deb.schedule()
+                }
+            }
+//            LaunchedEffect(true) {
+//                delay(300)
+//                println("--------------")
+//                pattern = "rayscan"
+//                deb.executeNow()
+//                println("-!!!!!!!!!!!!!!!!!")
+//            }
 
-            InputLine {
+
+            InputLine(pattern) {
                 pattern = it
                 deb.schedule()
             }

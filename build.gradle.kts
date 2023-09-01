@@ -24,6 +24,7 @@ dependencies {
     // (in a separate module for demo project and in testMain).
     // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
+    implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
     implementation("com.h2database:h2:2.2.220")
     implementation("net.sergeych:kotyara:1.4.2-SNAPSHOT")
     implementation("net.sergeych:mp_stools:1.4.1-SNAPSHOT")

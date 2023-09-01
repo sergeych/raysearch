@@ -10,6 +10,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -26,7 +27,8 @@ fun ScanProgressBar(modifier: Modifier = Modifier.fillMaxWidth()) {
 
     Card(
         elevation = 6.dp,
-        modifier = modifier
+        modifier = modifier,
+        backgroundColor = Color(0xFFEEeeEE),
     ) {
         Row(
             Modifier.padding(6.dp),

@@ -17,8 +17,8 @@ import net.sergeych.tools.rememberDebouncer
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun InputLine(onChanged: (String) -> Unit) {
-    var text by remember { mutableStateOf("") }
+fun InputLine(initialValue: String = "", onChanged: (String) -> Unit) {
+    var text by remember { mutableStateOf(initialValue) }
     val fr = FocusRequester()
     val changer = rememberDebouncer(300.milliseconds) {
         onChanged(text)
@@ -32,7 +32,6 @@ fun InputLine(onChanged: (String) -> Unit) {
             Text("enter search string here")
         },
         leadingIcon = {
-//            Icon(imageVector = FeatherIcons.Search, "search")
             Image(
                 painterResource("raysearch.svg"),
                 "8-rays.dev search",
