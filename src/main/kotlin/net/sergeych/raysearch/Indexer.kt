@@ -5,6 +5,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.sync.Mutex
 import net.sergeych.mp_logger.LogTag
 import net.sergeych.mp_logger.debug
+import net.sergeych.mp_logger.info
 import net.sergeych.mp_logger.warning
 import net.sergeych.mptools.withReentrantLock
 import org.apache.lucene.analysis.standard.StandardAnalyzer
@@ -37,6 +38,7 @@ class Indexer(path: Path) : LogTag("INDX") {
     private val access = Mutex()
 
     private val reIsLuceneMask = Regex("""((?:^|[^\\])\*|(?:^|[^\\])\?)""")
+    private val reIsFileName = Regex("""(^(?:f|file):)|(\.[^.]*$)""")
 
     suspend fun search(pattern: String, maxHits: Int = 100): List<Result> =
         access.withReentrantLock {
@@ -46,17 +48,25 @@ class Indexer(path: Path) : LogTag("INDX") {
 
             val query = BooleanQuery.Builder().apply {
                 pattern.split(" ").map { it.trim().lowercase() }.forEach { src ->
-                    if (src.isNotBlank()) {
-                        if (src.contains(reIsLuceneMask)) {
-                            add(WildcardQuery(Term(FN_CONTENT, src)), BooleanClause.Occur.MUST)
-                        } else {
-                            debug { "detected search mask: $src" }
-                            add(TermQuery(Term(FN_CONTENT, src)), BooleanClause.Occur.MUST)
+                    when {
+                        src.isBlank() -> {} // ignore empty
+                        reIsFileName in src -> {
+                            info {"filename: $src" }
+                            // todo: detect path part
+                            if( '*' in src || '?' in src)
+                                add(WildcardQuery(Term(FN_FILENAME, src)), BooleanClause.Occur.MUST)
+                            else
+                                add(TermQuery(Term(FN_FILENAME, src)), BooleanClause.Occur.MUST)
                         }
+                        reIsLuceneMask in src -> {
+                            add(WildcardQuery(Term(FN_CONTENT, src)), BooleanClause.Occur.MUST)
+                        }
+                        else ->
+                            add(TermQuery(Term(FN_CONTENT, src)), BooleanClause.Occur.MUST)
                     }
                 }
             }.build()
-            searcher.search(query,maxHits).scoreDocs.mapNotNull {
+            searcher.search(query, maxHits).scoreDocs.mapNotNull {
                 val doc = reader.storedFields().document(it.doc)
                 val id = doc.getField(FN_ID).numericValue().toLong()
                 inDb { byId<FileDoc>(id) }?.let { fd -> Result(fd) }
@@ -73,11 +83,13 @@ class Indexer(path: Path) : LogTag("INDX") {
 
     suspend fun addDocument(fdoc: FileDoc) {
         val contentField = TextField(FN_CONTENT, fdoc.extractText(), Field.Store.NO)
-        val pathField = TextField(FN_PATH, fdoc.path.pathString, Field.Store.NO)
+        val pathField = StringField(FN_PATH, fdoc.path.parent?.pathString?.lowercase() ?: "", Field.Store.NO)
+        val fileNameField = StringField(FN_FILENAME, fdoc.path.fileName.pathString?.lowercase(), Field.Store.NO)
         val idField = LongField(FN_ID, fdoc.id, Field.Store.YES)
         val doc = Document()
         doc.add(contentField)
         doc.add(pathField)
+        doc.add(fileNameField)
         doc.add(idField)
         access.withReentrantLock {
             deleteDocument(fdoc)
@@ -89,7 +101,7 @@ class Indexer(path: Path) : LogTag("INDX") {
 
     suspend fun deleteDocument(fdoc: FileDoc) {
         access.withReentrantLock {
-            writer.deleteDocuments(LongPoint.newRangeQuery(FN_ID,fdoc.id, fdoc.id))
+            writer.deleteDocuments(LongPoint.newRangeQuery(FN_ID, fdoc.id, fdoc.id))
         }
         changedChannel.trySend(Unit)
         debug { "deleted from index: $fdoc" }
@@ -98,6 +110,7 @@ class Indexer(path: Path) : LogTag("INDX") {
     companion object {
         const val FN_CONTENT = "content"
         const val FN_PATH = "path"
+        const val FN_FILENAME = "fname"
         const val FN_ID = "id"
     }
 }

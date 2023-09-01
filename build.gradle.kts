@@ -62,13 +62,14 @@ compose.desktop {
 //            isEnabled.set(false)
         }
         nativeDistributions {
+            val iconsRoot = project.file("src/main/resources/launcher_icons")
             modules("java.sql","java.instrument", "java.sql", "jdk.unsupported", "jdk.zipfs")
 //            includeAllModules = true
             description = "File content indexing (text) and fast search"
 //            copyright = "© 2023 Sergey S. Chernov. All rights reserved."
 //            vendor = "8 rays dev"
             linux {
-                iconFile.set(project.file("icon.png"))
+                iconFile.set(project.file("src/main/resources/launcher_icons/raysearch.png"))
             }
 //            licenseFile.set(project.file("LICENSE.txt"))
         }
