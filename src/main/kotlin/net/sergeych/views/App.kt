@@ -38,10 +38,23 @@ fun App() {
                     busy = false
                 }
             }
+            val debIndexChange = rememberDebouncer(500.milliseconds, 500.milliseconds) {
+                // this one is called when the index is changed, so we should not cause lot of
+                // flickering on the displayed result, so we do it silently:
+                val newList = indexer.search(pattern, 50)
+                if( newList.size != list.size
+                    || list.zip(newList).any { it.first.fd.id != it.second.fd.id}
+                    ) {
+                    list.clear()
+                    list.addAll(newList)
+                    nothingFound = list.isEmpty()
+                }
+
+            }
             LaunchedEffect(true) {
                 while(isActive) {
                     indexer.changed.receive()
-                    deb.schedule()
+                    debIndexChange.schedule()
                 }
             }
 //            LaunchedEffect(true) {
