@@ -1,6 +1,7 @@
 # Missing Linux GUI app to index and search file tree
 
-> Work in progress, though it generally works.
+> Work in progress, though it generally works. You can try to install the [prerelease beta1 from .deb](https://github.com/sergeych/raysearch/releases/download/v1.0.1/raysearch_1.0.1-1_amd64.deb). See releases on the right panel - there could be newer than this!
+
 
 # Search all your texts:
 
@@ -40,7 +41,7 @@ I _will_ also index pdf texts (where there are) and the LibreOffice documents, I
 
 ## How to run
 
-I gonna download `.deb` for installation real soon.
+Install from .deb file available in releases (see right panel). Start with the most recent!
 
 ## Why reinwenting the wheel?
 
