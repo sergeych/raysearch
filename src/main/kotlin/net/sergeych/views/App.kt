@@ -57,14 +57,6 @@ fun App() {
                     debIndexChange.schedule()
                 }
             }
-//            LaunchedEffect(true) {
-//                delay(300)
-//                println("--------------")
-//                pattern = "rayscan"
-//                deb.executeNow()
-//                println("-!!!!!!!!!!!!!!!!!")
-//            }
-
 
             InputLine(pattern) {
                 pattern = it

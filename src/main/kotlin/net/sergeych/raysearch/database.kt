@@ -15,8 +15,8 @@ operator fun Path.plus(other: Path): Path = resolve(other)
 
 @Suppress("unused")
 fun deleteDb() {
-    Files.deleteIfExists(h2Home + "rayscan.mv.db")
-    Files.deleteIfExists(h2Home + "rayscan.trace.db")
+    Files.deleteIfExists(h2Home + "raysearch.mv.db")
+    Files.deleteIfExists(h2Home + "raysearch.trace.db")
     File(lucenHome.toString()).deleteRecursively()
 }
 
@@ -25,7 +25,7 @@ val database by lazy {
     Files.createDirectories(h2Home)
     Files.createDirectories(lucenHome)    // init lucene
     Class.forName("org.h2.Driver")
-    Database("jdbc:h2:$appHomePath/db/rayscan", 10, null)
+    Database("jdbc:h2:$appHomePath/db/raysearch", 10, null)
         .also { it.migrateWithResources(object {}::class.java) }
 }
 

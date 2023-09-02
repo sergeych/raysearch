@@ -47,12 +47,12 @@ fun String.interpolatePath(path: Path): String {
 }
 
 val appHomePath: Path by lazy {
-    Paths.get(System.getProperty("user.home") + "/.rayscan")
+    Paths.get(System.getProperty("user.home") + "/.raysearch")
         .also { it.createDirectories() }
 }
 
 val Config: ConfigData by lazy {
-    val file: Path = appHomePath.resolve("rayscan.yaml")
+    val file: Path = appHomePath.resolve("raysearch.yml")
     if (file.exists() && file.isReadable())
         Yaml.decodeFromString(file.readText())
     else
