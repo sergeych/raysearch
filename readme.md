@@ -16,6 +16,8 @@
 | `MIT license readme.md` | all readme.md files that cope with MIT license                                         |
 | `f:myscript rendering`  | any files named `myscript` containig the `rendering` word. IT supports shebank scripts |
 
+![](screenshots/home1.png)
+
 Raysearch scans the while user home directory for text files, and indexes them all. IT is written to walk FS in parallel
 with indexing already found entries. It stores file tree metadata and reacts to changes. It is intended to be left in
 the background to update indexes as the FS changes and have it ready at hand.
@@ -24,7 +26,8 @@ Results are live: whenever it scans more data, or filesystem changes, the result
 
 ## Scanning details
 
-On start it rescans user home for all texts it can find, avoiding non-reasonable things like
+On start, it rescans user home (a delta from last start) for all texts it can find, avoiding non-reasonable things like
+
 
 - node moules where it detects npm/yarn usage
 - build directories in yarn projects
