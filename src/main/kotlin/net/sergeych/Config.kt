@@ -3,10 +3,7 @@ package net.sergeych
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import net.mamoe.yamlkt.Yaml
-import net.sergeych.mp_logger.LogTag
-import net.sergeych.mp_logger.Loggable
-import net.sergeych.mp_logger.debug
-import net.sergeych.mp_logger.exception
+import net.sergeych.mp_logger.*
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.*
@@ -15,8 +12,10 @@ import kotlin.io.path.*
 @Serializable
 data class ConfigData(
     val openFolderCommand: String = "gio open {path}",
-    val openFileCommand: String = "gio open {path}/{file_name}"
+    val openFileCommand: String = "gio open {path}/{file_name}",
+    val fileLogLevel: Log.Level = Log.Level.DEBUG
 ): Loggable by LogTag("CONF") {
+
     fun openFile(file: Path) {
         val cmd = openFileCommand.interpolatePath(file)
         debug { "opening file with command $cmd" }
@@ -57,6 +56,6 @@ val Config: ConfigData by lazy {
         Yaml.decodeFromString(file.readText())
     else
         ConfigData().also {
-            file.writeText(Yaml.encodeToString(it))
+            file.writeText(Yaml.encodeToString(it)+"\n")
         }
 }

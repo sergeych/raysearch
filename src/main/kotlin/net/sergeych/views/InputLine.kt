@@ -24,10 +24,12 @@ fun InputLine(initialValue: String = "", onChanged: (String) -> Unit) {
         onChanged(text)
     }
     TextField(
-        text, {
+        text,
+        {
             text = it
             changer.schedule()
-        }, Modifier.fillMaxWidth().focusRequester(fr),
+        },
+        Modifier.fillMaxWidth().focusRequester(fr),
         label = {
             Text("enter search string here")
         },
@@ -35,11 +37,15 @@ fun InputLine(initialValue: String = "", onChanged: (String) -> Unit) {
             Image(
                 painterResource("raysearch.svg"),
                 "8-rays.dev search",
-                modifier = Modifier.height(48.dp),
+                modifier = Modifier.height(48.dp)
+//                    .clickable {
+//                   println("open local menu?")
+//                }
+                ,
                 contentScale = ContentScale.Fit
             )
         },
-        maxLines = 1
+        maxLines = 1,
     )
 
     LaunchedEffect(true) {

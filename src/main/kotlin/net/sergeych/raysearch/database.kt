@@ -3,6 +3,7 @@ package net.sergeych.raysearch
 import net.sergeych.appHomePath
 import net.sergeych.kotyara.Database
 import net.sergeych.kotyara.db.DbContext
+import net.sergeych.mp_logger.Log
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -26,12 +27,15 @@ val database by lazy {
     Files.createDirectories(lucenHome)    // init lucene
     Class.forName("org.h2.Driver")
     Database("jdbc:h2:$appHomePath/db/raysearch", 10, null)
-        .also { it.migrateWithResources(object {}::class.java) }
+        .also {
+            it.migrateWithResources(object {}::class.java)
+            it.logLevel = Log.Level.INFO
+        }
 }
 
 val indexer by lazy {
     // ensure it is ok
-    database.withContext {  }
+    database.withContext { }
     // now we can open indexer
     Indexer(lucenHome)
 }
