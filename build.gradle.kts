@@ -39,12 +39,12 @@ dependencies {
 compose.desktop {
 
     application {
-        mainClass = "MainKt"
+        mainClass = "EightRaysSearchKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "raysearch"
-            packageVersion = "1.0.1"
+            packageVersion = "1.0.2"
         }
     }
 }
@@ -67,8 +67,10 @@ compose.desktop {
 //            includeAllModules = true
             description = "File content indexing (text) and fast search"
             copyright = "© 2023 Sergey S. Chernov. All rights reserved."
-            vendor = "8 rays dev"
+            vendor = "real.sergeych@gmail.com"
             linux {
+                menuGroup = "tools"
+                appCategory = "search   "
                 iconFile.set(project.file("src/main/resources/launcher_icons/raysearch.png"))
             }
 //            licenseFile.set(project.file("LICENSE.txt"))

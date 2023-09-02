@@ -101,7 +101,8 @@ object Scanner : LogTag("SCANR") {
                 r.rescan()
             }
 
-            // todo: we should buffer what's happening while we're scanning!
+            // FSEvents are yet buffered, so we have no RC. Now when scanning
+            // is done, we can process with events.
             debug { "watching changes" }
             FSWatch.events.collect { fe ->
                 debug { "Collected: $fe" }

@@ -17,13 +17,11 @@ import kotlin.io.path.pathString
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() = application {
-    val userHome = System.getProperties().getProperty("user.home")// + "/dev/raysearch"
-
     Log.connectConsole(Log.Level.INFO)
     FileLogCatcher(appHomePath.resolve("raysearch.log").pathString, Config.fileLogLevel,true)
     Log.defaultLevel = Log.Level.DEBUG
 
-    Scanner.setup(listOf(userHome))
+    Scanner.setup(listOf(System.getProperties().getProperty("user.home")))
 
     Window(
         onCloseRequest = ::exitApplication, title = "8 Rays search", onKeyEvent = {

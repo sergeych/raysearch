@@ -1,0 +1,54 @@
+#!/bin/bash
+
+function die
+{
+    local message=$1
+    [ -z "$message" ] && message="Died"
+    echo "${BASH_SOURCE[1]}: line ${BASH_LINENO[0]}: ${FUNCNAME[1]}: $message." >&2
+    exit 1
+}
+
+echo "fixing deb"
+
+if [[ $PWD/ == */bin ]]; then
+  echo "changing to project root"
+  cd ..
+fi
+
+./gradlew packageDeb || die "failed to build the package"
+
+deb_root="./build/compose/binaries/main/deb"
+
+[ -d "${deb_root}" ] ||  die "missing build directory"
+
+file=`find "$deb_root" -type f -iname "*.deb"`
+
+echo "Found: [$file]"
+
+[ -f "$file" ]  || die "not found .deb"
+
+tmpdir="./build/tmp/fixdeb"
+
+rm -rd "$tmpdir"
+mkdir -p "$tmpdir"
+
+dpkg-deb -R "$file" "$tmpdir" || die "failed to unpack .deb"
+
+desktop="$tmpdir/opt/raysearch/lib/raysearch-raysearch.desktop"
+
+[ -z "$desktop" ] && die "desktop file not found"
+
+echo "StartupWMClass=EightRaysSearchKt" >> "$desktop"
+echo "SingleMainWindow=true" >> "$desktop"
+#
+#echo "now -------------------------"
+#cat "$desktop"
+#
+dpkg-deb --build --root-owner-group "$tmpdir" || die "failed to repackage .deb"
+
+distrib="./distrib"
+debname="${file##*/}"
+
+mkdir -p "$distrib"
+rm -f "$distrib/*.deb"
+mv "$tmpdir.deb" "$distrib/$debname" || die "failed to copy distribution to target $distrib"

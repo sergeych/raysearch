@@ -10,7 +10,6 @@ import net.sergeych.kotyara.db.Identifiable
 import net.sergeych.kotyara.db.updateAndReturn
 import net.sergeych.kotyara.db.updateCheck
 import net.sergeych.mp_logger.*
-import net.sergeych.mp_tools.globalLaunch
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.*
@@ -310,8 +309,8 @@ data class SearchFolder(
 
         suspend fun deleteObject(item: Path) {
             if (!item.exists()) {
-                if( deleteFolder(item)) return
-                debug { "fonlder not found, trying to delete file: $item"}
+                if (deleteFolder(item)) return
+                debug { "fonlder not found, trying to delete file: $item" }
                 val (_, doc) = findFileDocChain(item)
                 if (doc != null) {
                     debug { "deletefile: found: $doc, will delete" }
@@ -342,10 +341,8 @@ data class SearchFolder(
                     } else {
                         debug { "create and add first level folder and rescan it" }
                         addNewFolder(chain, item)?.also { sf ->
-                            globalLaunch {
-                                debug { "rescanning new folder $sf" }
-                                sf.rescan()
-                            }
+                            debug { "rescanning new folder $sf" }
+                            sf.rescan()
                         }
                     }
                 }
@@ -353,10 +350,8 @@ data class SearchFolder(
                 val (chain, doc) = findFileDocChain(item)
                 if (chain.isEmpty()) return
                 if (doc != null) {
-                    globalLaunch {
-                        debug { "rescanning existing file" }
-                        db { doc.requestRescan(it, item) }
-                    }
+                    debug { "rescanning existing file" }
+                    db { doc.requestRescan(it, item) }
                     return
                 }
                 // probably we already have a folder for it
@@ -368,7 +363,6 @@ data class SearchFolder(
                     debug { "we need to create and rescan floder structure: ${last.path} -> $item" }
                     addNewFolder(chain, item.parent)
                 }
-
             }
         }
     }
