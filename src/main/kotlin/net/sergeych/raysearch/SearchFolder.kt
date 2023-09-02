@@ -58,7 +58,7 @@ data class SearchFolder(
             if (!myPath.exists()) {
                 isOk = false
 //                db { destroy(it) }
-//                info { "path $cachedPath is deleted, removing from the database" }
+//                debug { "path $cachedPath is deleted, removing from the database" }
                 delete()
             } else {
                 for (n in myPath.listDirectoryEntries("*")) {
@@ -81,14 +81,14 @@ data class SearchFolder(
                                 if (it.textExtractor.isValid(n))
                                     checkFile(it, n)
                                 else {
-                                    info { "the file is invalid for ${it.typeName}: $n" }
+                                    debug { "the file is invalid for ${it.typeName}: $n" }
                                     markInvalid(n)
                                 }
                             }
                         }
 
                         else -> {
-                            info { "no idea what to do with $n" }
+                            debug { "no idea what to do with $n" }
                         }
                     }
                     knownFiles.remove(n.name)
@@ -153,7 +153,7 @@ data class SearchFolder(
     }
 
     suspend fun delete() {
-        info { "starting removing folder $this" }
+        debug { "starting removing folder $this" }
         for (f in files())
             f.delete()
         for (d in folders()) {
@@ -241,7 +241,6 @@ data class SearchFolder(
                 var rest = Paths.get(item.pathString.substring(root.pathString.length))
                 var currentId = root.id
                 do {
-                    println("fchn step: start ${result.joinToString("/"){it.name }} / $rest:${rest.nameCount} #=$currentId")
                     val path = rest.subpath(0, 1)
                     val sf = queryRow<SearchFolder>(
                         """
@@ -251,7 +250,7 @@ data class SearchFolder(
                         currentId, path.pathString
                     )
                     if (sf == null) {
-                        info { "only partial path was found: $result" }
+                        debug { "only partial path was found: $result" }
                         break
                     }
                     result += sf
@@ -279,7 +278,7 @@ data class SearchFolder(
         }
 
         fun addNewFolder(chain: List<SearchFolder>, item: Path): SearchFolder? {
-            info { "adding new folder: chain: $chain existing: $item" }
+            debug { "adding new folder: chain: $chain existing: $item" }
             val last = chain.last()
             if (!item.pathString.startsWith(last.pathString)) {
                 throw IllegalArgumentException("paths diverge: chain is ${last.pathString} new path is $item")
@@ -288,10 +287,10 @@ data class SearchFolder(
             val nextPart = item.subpath(last.path.nameCount, last.path.nameCount + 1)
             val rule = getRule(item.parent.pathString)
             return if (rule.shouldSkipDir(item)) {
-                info { "we should not add folder to the index: $item" }
+                debug { "we should not add folder to the index: $item" }
                 null
             } else {
-                info { "will create search folder: $nextPart" }
+                debug { "will create search folder: $nextPart" }
                 get(last.id, nextPart)
             }
         }
@@ -300,11 +299,11 @@ data class SearchFolder(
             // folder chain will
             val searchFolder = findFolderChain(item).last()
             return if (item == searchFolder.path) {
-                info { "deleteFolder: found: $item" }
+                debug { "deleteFolder: found: $item" }
                 searchFolder.delete()
                 true
             } else {
-                info { "delete folder: not found, nothing to do" }
+                debug { "delete folder: not found, nothing to do" }
                 false
             }
         }
@@ -312,16 +311,16 @@ data class SearchFolder(
         suspend fun deleteObject(item: Path) {
             if (!item.exists()) {
                 if( deleteFolder(item)) return
-                info { "fonlder not found, trying to delete file: $item"}
+                debug { "fonlder not found, trying to delete file: $item"}
                 val (_, doc) = findFileDocChain(item)
                 if (doc != null) {
-                    info { "deletefile: found: $doc, will delete" }
+                    debug { "deletefile: found: $doc, will delete" }
                     doc.delete()
                 } else {
-                    info { "deleteFile: not found, nothing to do: $item" }
+                    debug { "deleteFile: not found, nothing to do: $item" }
                 }
             } else
-                info { "can't object from index as it exists in FS: $item" }
+                debug { "can't object from index as it exists in FS: $item" }
         }
 
         suspend fun actualize(item: Path) {
@@ -339,12 +338,12 @@ data class SearchFolder(
                 } else {
                     val last = chain.last()
                     if (last.path == item) {
-                        info { "found exact folder, therefore nothing to do" }
+                        debug { "found exact folder, therefore nothing to do" }
                     } else {
-                        info { "create and add first level folder and rescan it" }
+                        debug { "create and add first level folder and rescan it" }
                         addNewFolder(chain, item)?.also { sf ->
                             globalLaunch {
-                                info { "rescanning new folder $sf" }
+                                debug { "rescanning new folder $sf" }
                                 sf.rescan()
                             }
                         }
@@ -355,7 +354,7 @@ data class SearchFolder(
                 if (chain.isEmpty()) return
                 if (doc != null) {
                     globalLaunch {
-                        info { "rescanning existing file" }
+                        debug { "rescanning existing file" }
                         db { doc.requestRescan(it, item) }
                     }
                     return
@@ -363,10 +362,10 @@ data class SearchFolder(
                 // probably we already have a folder for it
                 val last = chain.last()
                 if (last.path == item.parent) {
-                    info { "file is created in existing folder: $last" }
+                    debug { "file is created in existing folder: $last" }
                     last.createDoc(item)
                 } else {
-                    info { "we need to create and rescan floder structure: ${last.path} -> $item" }
+                    debug { "we need to create and rescan floder structure: ${last.path} -> $item" }
                     addNewFolder(chain, item.parent)
                 }
 
@@ -381,7 +380,7 @@ data class SearchFolder(
         getRule(pathString).let { rule ->
             debug { "got a rule for a file: $item -> $rule" }
             rule.docDef(item)?.let { checkFile(it, item) }
-                ?: info { "file should not be included into index: $item" }
+                ?: debug { "file should not be included into index: $item" }
         }
     }
 }

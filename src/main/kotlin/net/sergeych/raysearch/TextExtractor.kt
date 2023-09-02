@@ -1,7 +1,7 @@
 package net.sergeych.raysearch
 
 import net.sergeych.mp_logger.LogTag
-import net.sergeych.mp_logger.info
+import net.sergeych.mp_logger.debug
 import java.io.BufferedInputStream
 import java.nio.file.Path
 import kotlin.io.path.inputStream
@@ -39,7 +39,7 @@ class PlainTextExtractor(val cs: SupportedCharset) : TextExtractor, LogTag("PTEX
             isUTF8(file) -> SupportedCharset.UTF8
             isAscii(file) -> SupportedCharset.ASCII
             else -> {
-                info { "can't detect plain text: $file" }
+                debug { "can't detect plain text: $file" }
                 null
             }
         }
@@ -85,7 +85,7 @@ class PlainTextExtractor(val cs: SupportedCharset) : TextExtractor, LogTag("PTEX
                         9, 10, 12, 13 -> continue // spaces: HT, LF, FF, CR
                         in 32..126, in 145..156, in 158..255 -> continue
                         else -> {
-                            info { "invalid latin-1 character code ${b.toUByte().toString(16)}" }
+                            debug { "invalid latin-1 character code ${b.toUByte().toString(16)}" }
                             return false
                         }
                     }

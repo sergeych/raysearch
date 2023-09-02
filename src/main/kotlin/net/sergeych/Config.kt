@@ -5,8 +5,8 @@ import kotlinx.serialization.decodeFromString
 import net.mamoe.yamlkt.Yaml
 import net.sergeych.mp_logger.LogTag
 import net.sergeych.mp_logger.Loggable
+import net.sergeych.mp_logger.debug
 import net.sergeych.mp_logger.exception
-import net.sergeych.mp_logger.info
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.*
@@ -19,10 +19,10 @@ data class ConfigData(
 ): Loggable by LogTag("CONF") {
     fun openFile(file: Path) {
         val cmd = openFileCommand.interpolatePath(file)
-        info { "opening file with command $cmd" }
+        debug { "opening file with command $cmd" }
         try {
             Runtime.getRuntime().exec(cmd)
-            info { "open ok" }
+            debug { "open ok" }
         }
         catch(t: Throwable) {
             exception { "failed to execute '$cmd`" to t }
@@ -30,10 +30,10 @@ data class ConfigData(
     }
     fun openFolder(file: Path) {
         val cmd = openFolderCommand.interpolatePath(file)
-        info { "opening folder with command $cmd" }
+        debug { "opening folder with command $cmd" }
         try {
             Runtime.getRuntime().exec(cmd)
-            info { "open ok" }
+            debug { "open ok" }
         }
         catch(t: Throwable) {
             exception { "failed to execute '$cmd`" to t }

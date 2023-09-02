@@ -5,7 +5,6 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.sync.Mutex
 import net.sergeych.mp_logger.LogTag
 import net.sergeych.mp_logger.debug
-import net.sergeych.mp_logger.info
 import net.sergeych.mp_logger.warning
 import net.sergeych.mptools.withReentrantLock
 import org.apache.lucene.analysis.standard.StandardAnalyzer
@@ -51,7 +50,7 @@ class Indexer(path: Path) : LogTag("INDX") {
                     when {
                         src.isBlank() -> {} // ignore empty
                         reIsFileName in src -> {
-                            info {"filename: $src" }
+                            debug {"filename: $src" }
                             // todo: detect path part
                             if( '*' in src || '?' in src)
                                 add(WildcardQuery(Term(FN_FILENAME, src)), BooleanClause.Occur.MUST)
@@ -84,7 +83,7 @@ class Indexer(path: Path) : LogTag("INDX") {
     suspend fun addDocument(fdoc: FileDoc) {
         val contentField = TextField(FN_CONTENT, fdoc.extractText(), Field.Store.NO)
         val pathField = StringField(FN_PATH, fdoc.path.parent?.pathString?.lowercase() ?: "", Field.Store.NO)
-        val fileNameField = StringField(FN_FILENAME, fdoc.path.fileName.pathString?.lowercase(), Field.Store.NO)
+        val fileNameField = StringField(FN_FILENAME, fdoc.path.fileName.pathString.lowercase(), Field.Store.NO)
         val idField = LongField(FN_ID, fdoc.id, Field.Store.YES)
         val doc = Document()
         doc.add(contentField)

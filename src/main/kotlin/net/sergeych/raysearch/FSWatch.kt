@@ -4,8 +4,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import net.sergeych.mp_logger.LogTag
+import net.sergeych.mp_logger.debug
 import net.sergeych.mp_logger.exception
-import net.sergeych.mp_logger.info
 import net.sergeych.mp_logger.warning
 import net.sergeych.mp_tools.globalLaunch
 import java.nio.file.*
@@ -60,7 +60,7 @@ object FSWatch : LogTag("FSWAT") {
                 key.cancel()
                 paths.remove(key)
                 keys.remove(dir)
-                info { "cancelled watch on $dir" }
+                debug { "cancelled watch on $dir" }
             }
         }
     }
@@ -73,7 +73,7 @@ object FSWatch : LogTag("FSWAT") {
                 val key = path.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)
                 keys[path] = key
                 paths[key] = path
-                info { "watching: $path" }
+                debug { "watching: $path" }
             }
         }
     }
@@ -111,13 +111,13 @@ object FSWatch : LogTag("FSWAT") {
                             }
 
                             else -> {
-                                info { "ignoring unknown FSEvent type: $kind" }
+                                debug { "ignoring unknown FSEvent type: $kind" }
                                 null
                             }
                         }?.let {
-                            info { "posting event: $it" }
+                            debug { "posting event: $it" }
                             _eventsFlow.tryEmit(it)
-                        } ?: info { "this event is ignored: ${kind.name()}: $path" }
+                        } ?: debug { "this event is ignored: ${kind.name()}: $path" }
                     }
                     if (!key.reset()) {
                         synchronized(access) {

@@ -10,7 +10,6 @@ import kotlinx.coroutines.isActive
 import net.sergeych.mp_logger.LogTag
 import net.sergeych.mp_logger.debug
 import net.sergeych.mp_logger.exception
-import net.sergeych.mp_logger.info
 import net.sergeych.mp_tools.globalLaunch
 import net.sergeych.tools.Debouncer
 import java.nio.file.Paths
@@ -81,7 +80,7 @@ object Scanner : LogTag("SCANR") {
 
     fun startTreeWatch(defaultRoots: List<String>) {
         globalLaunch {
-            info { "scanning root" }
+            debug { "scanning root" }
             val roots = db {
                 var rr = SearchFolder.roots(it)
                 if (rr.isEmpty()) {
@@ -96,16 +95,16 @@ object Scanner : LogTag("SCANR") {
                 }
                 rr
             }
-            info { "there are ${roots.size} roots" }
+            debug { "there are ${roots.size} roots" }
             for (r in roots) {
-                info { "found root: ${r.pathString}" }
+                debug { "found root: ${r.pathString}" }
                 r.rescan()
             }
 
             // todo: we should buffer what's happening while we're scanning!
-            info { "watching changes" }
+            debug { "watching changes" }
             FSWatch.events.collect { fe ->
-                info { "Collected: $fe" }
+                debug { "Collected: $fe" }
                 try {
                     when (fe) {
                         is FSEvent.DirCreated -> SearchFolder.actualize(fe.item)

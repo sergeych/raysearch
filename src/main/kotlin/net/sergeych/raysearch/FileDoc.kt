@@ -6,7 +6,7 @@ import net.sergeych.kotyara.db.Identifiable
 import net.sergeych.kotyara.db.hasOne
 import net.sergeych.mp_logger.LogTag
 import net.sergeych.mp_logger.Loggable
-import net.sergeych.mp_logger.info
+import net.sergeych.mp_logger.debug
 import java.nio.file.Path
 import kotlin.io.path.fileSize
 import kotlin.io.path.getLastModifiedTime
@@ -64,10 +64,10 @@ class FileDoc(
 
     override fun toString(): String = logTag
     suspend fun delete() {
-        info { "deleting, no more neede ;)" }
+        debug { "deleting, no more neede ;)" }
         indexer.deleteDocument(this)
         inDb { update("delete from file_docs where id=?", id) }
-        info { "deleted" }
+        debug { "deleted" }
     }
 
     companion object {
