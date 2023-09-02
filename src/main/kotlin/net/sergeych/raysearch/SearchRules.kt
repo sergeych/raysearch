@@ -19,8 +19,9 @@ import kotlin.io.path.*
  * if no custom action is required.
  */
 open class SearchRule : LogTag("SRUL"){
-    open fun shouldSkipDir(parent: String, dir: String): Boolean =
-        dir.startsWith('.')
+    open fun shouldSkipDir(path: Path): Boolean =
+        path.name.let { it.startsWith('.') || it == "tmp" || it.endsWith('~') }
+                || !path.isReadable() || path.isHidden()
 
     /**
      * Check that the file should be scanned and provide text extraction
@@ -28,10 +29,13 @@ open class SearchRule : LogTag("SRUL"){
      * @return text extractor or null if the file should be skipped
      */
     open fun docDef(file: Path): DocDef? {
-        if( file.isSymbolicLink() || file.isHidden() )
+        if( file.isSymbolicLink() || file.isHidden() || file.fileName.toString()[0] == '.')
             return null
         if( file.isDirectory())
-            throw IllegalArgumentException("can't docFef() on directory: $file")
+            throw IllegalArgumentException("can't docDef() on directory: $file")
+
+        if( file.name.endsWith('~'))
+            return null
 
         val x= file.extension.lowercase()
         return try {
@@ -111,7 +115,7 @@ open class SearchNamesRule(
     val dirs: Set<String> = setOf(),
     val files: Set<String> = setOf()
 ) : SearchRule() {
-    override fun shouldSkipDir(parent: String, dir: String): Boolean = dir in dirs
+    override fun shouldSkipDir(path: Path): Boolean = (path.name in dirs) || super.shouldSkipDir(path)
     override fun docDef(file: Path): DocDef? =
         if (file.fileName.toString() in files) null else super.docDef(file)
 }
@@ -124,7 +128,7 @@ object GradleProjectRule : SearchNamesRule(
 )
 
 object NpmProjectRule : SearchRule() {
-    override fun shouldSkipDir(parent: String, dir: String): Boolean {
-        return dir == "node_modules"
+    override fun shouldSkipDir(path: Path): Boolean {
+        return path.name == "node_modules"
     }
 }

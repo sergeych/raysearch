@@ -7,15 +7,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
+import net.sergeych.mp_logger.LogTag
+import net.sergeych.mp_logger.debug
+import net.sergeych.mp_logger.exception
+import net.sergeych.mp_logger.info
 import net.sergeych.mp_tools.globalLaunch
 import net.sergeych.tools.Debouncer
+import java.nio.file.Paths
 import kotlin.time.Duration.Companion.milliseconds
 
-object Scanner {
+object Scanner : LogTag("SCANR") {
 
     data class Stat(val files: Long = 0, val size: Long = 0) {
         val isEmpty: Boolean = files == 0L && size == 0L
-        operator fun plus(s: Stat): Stat = Stat(files+s.files, size + s.size)
+        operator fun plus(s: Stat): Stat = Stat(files + s.files, size + s.size)
     }
 
     data class Stats(val total: Stat = Stat(), val processed: Stat = Stat()) {
@@ -43,7 +48,7 @@ object Scanner {
                 where processed_mtime is not null and is_bad=false
             """.trimIndent()
             )!!
-            _stats.value = Stats(s1+s2, s2)
+            _stats.value = Stats(s1 + s2, s2)
         }
     }
 
@@ -51,9 +56,9 @@ object Scanner {
 
     fun startScanner() {
         globalLaunch {
-            while(isActive) {
+            while (isActive) {
                 val fds = FileDoc.firstNotProcessed(50)
-                if( fds.isEmpty())
+                if (fds.isEmpty())
                     scannerPulser.receive()
                 else {
                     for (fd in fds) {
@@ -74,7 +79,50 @@ object Scanner {
         scannerPulser.trySend(Unit)
     }
 
-    init {
+    fun startTreeWatch(defaultRoots: List<String>) {
+        globalLaunch {
+            info { "scanning root" }
+            val roots = db {
+                var rr = SearchFolder.roots(it)
+                if (rr.isEmpty()) {
+                    debug { "no roots in db, creating defaults" }
+                    for (dr in defaultRoots) {
+                        SearchFolder.get(null, Paths.get(dr))
+                    }
+                    rr = SearchFolder.roots(it)
+                }
+                if (rr.isEmpty()) {
+                    throw RuntimeException("can't create roots")
+                }
+                rr
+            }
+            info { "there are ${roots.size} roots" }
+            for (r in roots) {
+                info { "found root: ${r.pathString}" }
+                r.rescan()
+            }
+
+            // todo: we should buffer what's happening while we're scanning!
+            info { "watching changes" }
+            FSWatch.events.collect { fe ->
+                info { "Collected: $fe" }
+                try {
+                    when (fe) {
+                        is FSEvent.DirCreated -> SearchFolder.actualize(fe.item)
+                        is FSEvent.EntryDeleted -> SearchFolder.deleteObject(fe.item)
+                        is FSEvent.FileModified -> SearchFolder.actualize(fe.item)
+                        is FSEvent.FileCreated -> SearchFolder.actualize(fe.item)
+                    }
+                } catch (t: Throwable) {
+                    exception { "failure processing event $fe" to t }
+                }
+            }
+        }
+    }
+
+    // slouper11
+    fun setup(defaultRoots: List<String>) {
+        startTreeWatch(defaultRoots)
         pulseChanged()
         startScanner()
     }

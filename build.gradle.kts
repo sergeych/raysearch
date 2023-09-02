@@ -31,7 +31,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
     implementation("br.com.devsrsouza.compose.icons:feather:1.1.0")
     implementation("org.apache.lucene:lucene-core:9.7.0")
-    implementation("org.apache.lucene:lucene-queries:9.7.0")
+//    implementation("org.apache.lucene:lucene-queries:9.7.0")
 
     testImplementation(kotlin("test"))
 }
@@ -62,12 +62,12 @@ compose.desktop {
 //            isEnabled.set(false)
         }
         nativeDistributions {
-            val iconsRoot = project.file("src/main/resources/launcher_icons")
+//            val iconsRoot = project.file("src/main/resources/launcher_icons")
             modules("java.sql","java.instrument", "java.sql", "jdk.unsupported", "jdk.zipfs")
 //            includeAllModules = true
             description = "File content indexing (text) and fast search"
-//            copyright = "© 2023 Sergey S. Chernov. All rights reserved."
-//            vendor = "8 rays dev"
+            copyright = "© 2023 Sergey S. Chernov. All rights reserved."
+            vendor = "8 rays dev"
             linux {
                 iconFile.set(project.file("src/main/resources/launcher_icons/raysearch.png"))
             }

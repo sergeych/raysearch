@@ -48,10 +48,7 @@ fun String.interpolatePath(path: Path): String {
 
 val appHomePath: Path by lazy {
     Paths.get(System.getProperty("user.home") + "/.rayscan")
-        .also {
-            println(it)
-            it.createDirectories()
-        }
+        .also { it.createDirectories() }
 }
 
 val Config: ConfigData by lazy {

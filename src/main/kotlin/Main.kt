@@ -6,21 +6,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import net.sergeych.mp_logger.Log
-import net.sergeych.mp_tools.globalLaunch
-import net.sergeych.raysearch.SearchFolder
+import net.sergeych.raysearch.Scanner
 import net.sergeych.views.App
-import java.nio.file.Paths
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() = application {
+    val root = System.getProperties().getProperty("user.home")// + "/dev/raysearch"
+
     Log.connectConsole(Log.Level.INFO)
-    val root = System.getProperties().getProperty("user.home")
 
-    val sf = SearchFolder.get(null, Paths.get(root))
-
-    globalLaunch {
-        sf.rescan()
-    }
+    Scanner.setup(listOf(root))
 
     Window(onCloseRequest = ::exitApplication, title = "8 Rays search", onKeyEvent = {
         if (it.isCtrlPressed && it.key == Key.Q)
@@ -32,3 +27,4 @@ fun main() = application {
         App()
     }
 }
+

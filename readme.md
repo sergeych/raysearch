@@ -42,6 +42,10 @@ ScanFolder records create ScanFile records which are sort of tasks to perform in
 
 Rescan should be started when FS change event is detected, and on start.
 
+## Other stuff
+
+8 RAYS DEV is my software development company, welcome https://8-rays.dev. Unix rules!
+
 ## License
 
-All this will soon receive MIT license - well if they won't add clause agains red polo shirts or something worse. Right now the code is useless so no license yet. Contact me if you need something particularly strange.
+All this will soon receive MIT license - well, if they won't add clause agains red polo shirts or something worse. Right now the code is useless so no license yet. Contact me if you need something particularly strange.
