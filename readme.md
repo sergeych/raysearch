@@ -1,4 +1,4 @@
-# Missing Linux GUI app to full-text search files tree
+# Missing Linux GUI app to full-text search files
 
 > Very fast. Work in progress, though it generally works. You can try to install
 > the [prerelease beta3 from .deb](https://github.com/sergeych/raysearch/releases/download/v1.0.3/raysearch_1.0.3-1_amd64.deb).
