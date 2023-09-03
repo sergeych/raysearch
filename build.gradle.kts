@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "net.sergeych"
-version = "1.0-SNAPSHOT"
+version = "1.0.3"
 
 repositories {
     mavenCentral()
@@ -31,22 +31,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
     implementation("br.com.devsrsouza.compose.icons:feather:1.1.0")
     implementation("org.apache.lucene:lucene-core:9.7.0")
+    implementation("org.odftoolkit:odfdom-java:0.11.0")
 //    implementation("org.apache.lucene:lucene-queries:9.7.0")
 
     testImplementation(kotlin("test"))
-}
-
-compose.desktop {
-
-    application {
-        mainClass = "EightRaysSearchKt"
-
-        nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "raysearch"
-            packageVersion = "1.0.2"
-        }
-    }
 }
 
 tasks.named<KotlinCompilationTask<*>>("compileKotlin").configure {
@@ -57,11 +45,14 @@ tasks.named<KotlinCompilationTask<*>>("compileKotlin").configure {
 
 compose.desktop {
     application {
+        mainClass = "EightRaysSearchKt"
         buildTypes.release.proguard {
 //            obfuscate.set(false)
 //            isEnabled.set(false)
         }
         nativeDistributions {
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            packageName = "raysearch"
 //            val iconsRoot = project.file("src/main/resources/launcher_icons")
             modules("java.sql","java.instrument", "java.sql", "jdk.unsupported", "jdk.zipfs")
 //            includeAllModules = true

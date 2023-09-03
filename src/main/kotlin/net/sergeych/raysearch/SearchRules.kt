@@ -43,6 +43,8 @@ open class SearchRule : LogTag("SRUL"){
                 x in noScanFileExtensions -> null
                 x in programSources -> PlainTextExtractor.detectCharset(file)?.let { DocDef.ProgramSource(it) }
                 x in plainTexts -> PlainTextExtractor.detectCharset(file)?.let { DocDef.TextDocument(it) }
+                x == "odt" -> DocDef.OdfDef
+                x == "ods" -> DocDef.OdsDef
                 else -> {
                     if( reVersionedSo in file.name) {
                         debug { "versioned so: $file" }
@@ -91,8 +93,9 @@ open class SearchRule : LogTag("SRUL"){
             "zip", "bz2", "gz", "7z", "jar",
             "db",
 
+            "tmp",
             // to implement soon:
-            "odf", "odt", "ods", "pdf",
+            "pdf",
             "docx", "xlsx", "doc", "xls"
         )
 

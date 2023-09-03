@@ -10,6 +10,7 @@ import kotlinx.coroutines.isActive
 import net.sergeych.mp_logger.LogTag
 import net.sergeych.mp_logger.debug
 import net.sergeych.mp_logger.exception
+import net.sergeych.mp_logger.warning
 import net.sergeych.mp_tools.globalLaunch
 import net.sergeych.tools.Debouncer
 import java.nio.file.Paths
@@ -61,9 +62,15 @@ object Scanner : LogTag("SCANR") {
                     scannerPulser.receive()
                 else {
                     for (fd in fds) {
-                        indexer.addDocument(fd)
-                        fd.markProcessed()
-                        fd.loadText()
+                        try {
+                            indexer.addDocument(fd)
+                            fd.markProcessed()
+                        }
+                        catch(x: Exception) {
+                            warning { "failed to index document (failed to read): ${fd.docDef}: ${fd.path} "}
+                            fd.markInvalid()
+                        }
+//                        fd.loadText()
                     }
                     indexer.commit()
                     changeBouncer.schedule()

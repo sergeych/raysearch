@@ -2,11 +2,17 @@ package net.sergeych.raysearch
 
 import net.sergeych.mp_logger.LogTag
 import net.sergeych.mp_logger.debug
+import net.sergeych.mp_logger.info
+import org.odftoolkit.odfdom.doc.OdfSpreadsheetDocument
+import org.odftoolkit.odfdom.doc.OdfTextDocument
+import org.odftoolkit.odfdom.dom.element.office.OfficeTextElement
+import org.w3c.dom.Node
 import java.io.BufferedInputStream
 import java.nio.file.Path
 import kotlin.io.path.inputStream
 import kotlin.io.path.readBytes
 import kotlin.io.path.readText
+
 
 interface TextExtractor {
     val name: String
@@ -94,4 +100,58 @@ class PlainTextExtractor(val cs: SupportedCharset) : TextExtractor, LogTag("PTEX
             }
         }
     }
+}
+
+class OdtExtractor : TextExtractor, LogTag("ODFX") {
+    override val name: String
+        get() = "open text document"
+
+    override fun extractTextFrom(file: Path): String {
+        val odt = OdfTextDocument.loadDocument(file.toFile())
+        val rootElement: OfficeTextElement = odt.contentRoot
+        val text = StringBuilder()
+        fun scan(e: Node) {
+            if( e.hasChildNodes() ) {
+                for( i in 0..<e.childNodes.length) {
+                    scan( e.childNodes.item(i))
+                }
+            }
+            else
+                e.textContent.trim().let { if( it.isNotEmpty() ) text.appendLine(it) }
+        }
+        scan(rootElement)
+        return text.toString()
+    }
+
+    override fun isValid(path: Path): Boolean = true
+
+}
+
+class OdsExtractor : TextExtractor, LogTag("ODSX") {
+    override val name: String
+        get() = "open text document"
+
+    override fun extractTextFrom(file: Path): String {
+        val odt = OdfSpreadsheetDocument.loadDocument(file.toFile())
+        val rootElement = odt.contentRoot
+        if( rootElement == null ) {
+            info { "null root element in $file" }
+            return ""
+        }
+        val text = StringBuilder()
+        fun scan(e: Node) {
+            if( e.hasChildNodes() ) {
+                for( i in 0..<e.childNodes.length) {
+                    scan( e.childNodes.item(i))
+                }
+            }
+            else
+                e.textContent.trim().let { if( it.isNotEmpty() ) text.appendLine(it) }
+        }
+        scan(rootElement)
+        return text.toString()
+    }
+
+    override fun isValid(path: Path): Boolean = true
+
 }

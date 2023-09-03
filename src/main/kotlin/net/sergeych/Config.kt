@@ -11,38 +11,30 @@ import kotlin.io.path.*
 
 @Serializable
 data class ConfigData(
-    val openFolderCommand: String = "gio open {path}",
-    val openFileCommand: String = "gio open {path}/{file_name}",
     val fileLogLevel: Log.Level = Log.Level.DEBUG
-): Loggable by LogTag("CONF") {
+) : Loggable by LogTag("CONF") {
 
     fun openFile(file: Path) {
-        val cmd = openFileCommand.interpolatePath(file)
-        debug { "opening file with command $cmd" }
+        val cmd = arrayOf("gio", "open", file.pathString)
+        info { "opening file with command $cmd" }
         try {
             Runtime.getRuntime().exec(cmd)
-            debug { "open ok" }
-        }
-        catch(t: Throwable) {
+            info { "open ok" }
+        } catch (t: Throwable) {
             exception { "failed to execute '$cmd`" to t }
         }
     }
-    fun openFolder(file: Path) {
-        val cmd = openFolderCommand.interpolatePath(file)
-        debug { "opening folder with command $cmd" }
-        try {
-            Runtime.getRuntime().exec(cmd)
-            debug { "open ok" }
-        }
-        catch(t: Throwable) {
-            exception { "failed to execute '$cmd`" to t }
-        }
-    }
-}
 
-fun String.interpolatePath(path: Path): String {
-    return replace("{path}", path.parent.toString())
-        .replace("{file_name}", path.fileName.toString())
+    fun openFolder(file: Path) {
+        val cmd = arrayOf("gio", "open", file.pathString)
+        info { "opening folder with command $cmd" }
+        try {
+            Runtime.getRuntime().exec(cmd)
+            info { "open ok" }
+        } catch (t: Throwable) {
+            exception { "failed to execute '$cmd`" to t }
+        }
+    }
 }
 
 val appHomePath: Path by lazy {
@@ -52,10 +44,11 @@ val appHomePath: Path by lazy {
 
 val Config: ConfigData by lazy {
     val file: Path = appHomePath.resolve("raysearch.yml")
-    if (file.exists() && file.isReadable())
+    (if (file.exists() && file.isReadable())
         Yaml.decodeFromString(file.readText())
     else
-        ConfigData().also {
-            file.writeText(Yaml.encodeToString(it)+"\n")
+        ConfigData()
+            ).also {
+            file.writeText(Yaml.encodeToString(it) + "\n")
         }
 }

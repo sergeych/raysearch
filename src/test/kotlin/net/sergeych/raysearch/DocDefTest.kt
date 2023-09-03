@@ -1,7 +1,26 @@
 package net.sergeych.raysearch
 
-//class classDocDefTest {
-//    @Test   // 12 stoppped lj21   1231111
+import java.nio.file.Paths
+import kotlin.test.Test
+
+class classDocDefTest {
+    @Test
+    fun testOdt() {
+        val txt = OdtExtractor().extractTextFrom(
+            Paths.get("/home/sergeych/Documents/gamayun.odt")
+        )
+        println("-01")
+        println(txt)
+    }
+
+    @Test
+    fun testRuntime() {
+        val x = Runtime.getRuntime().exec(
+           arrayOf("gio","open", "/home/sergeych/Downloads/8rays software contract template.odt")
+        )
+        println(x.errorReader().readLine())
+    }
+}
 //    fun testSerialization() {
 //        val dd1 = DocDef.ProgramSource as DocDef
 //        val s = Json.encodeToString(dd1)

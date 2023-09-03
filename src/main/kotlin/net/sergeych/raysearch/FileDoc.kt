@@ -4,6 +4,7 @@ import kotlinx.datetime.Instant
 import net.sergeych.kotyara.db.DbContext
 import net.sergeych.kotyara.db.Identifiable
 import net.sergeych.kotyara.db.hasOne
+import net.sergeych.kotyara.db.updateCheck
 import net.sergeych.mp_logger.LogTag
 import net.sergeych.mp_logger.Loggable
 import net.sergeych.mp_logger.debug
@@ -57,17 +58,18 @@ class FileDoc(
 
     }
 
-    fun loadText(): String {
-        val src = docDef.textExtractor.extractTextFrom(path)
-        return src
-    }
-
     override fun toString(): String = logTag
     suspend fun delete() {
         debug { "deleting, no more neede ;)" }
         indexer.deleteDocument(this)
         inDb { update("delete from file_docs where id=?", id) }
         debug { "deleted" }
+    }
+
+    suspend fun markInvalid() {
+        inDb { updateCheck(1,
+            "update file_docs set processed_mtime=now(),is_bad=true where id=?", id)
+        }
     }
 
     companion object {

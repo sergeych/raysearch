@@ -45,4 +45,19 @@ sealed class DocDef {
             get() = throw IllegalArgumentException("can't extract text on the invalid file")
         override val typeName = "invalid"
     }
+
+    @Serializable
+    @DbJson
+    @SerialName("odt")
+    object OdfDef : DocDef() {
+        override val textExtractor: TextExtractor = OdtExtractor()
+        override val typeName: String = "ODF text document"
+    }
+    @Serializable
+    @DbJson
+    @SerialName("ods")
+    object OdsDef : DocDef() {
+        override val textExtractor: TextExtractor = OdsExtractor()
+        override val typeName: String = "ODF spreadsheet"
+    }
 }
