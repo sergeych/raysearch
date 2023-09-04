@@ -1,13 +1,14 @@
 # Missing Linux GUI app to full-text search files
 
-> Very fast. Work in progress, though it generally works. You can try to install
-> the [prerelease beta3 from .deb](https://github.com/sergeych/raysearch/releases/download/v1.0.3/raysearch_1.0.3-1_amd64.deb).
+> Very fast. Release Candidate. You can try to install
+> the [prerelease beta3 from .deb](https://github.com/sergeych/raysearch/releases/download/v1.0.3/raysearch_1.0.4-1_amd64.deb).
 > See releases on the right panel - there could be newer than this!
 
 __It indexes:__
 
-- program sources and text documents in UTF8, ASCII, ISO/IEC-88591 - autodetecting contents
+- program sources, plain text documents in UTF8, ASCII, ISO/IEC-88591 - autodetecting contents, markdows, etc.
 - Libre Office (Open Document Format) text documents and spreadsheets
+- The text conent of the .pdf. Note that often pdf has no text.
 
 # Search all your texts easily!
 
