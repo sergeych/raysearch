@@ -26,7 +26,7 @@ data class ConfigData(
     }
 
     fun openFolder(file: Path) {
-        val cmd = arrayOf("gio", "open", file.pathString)
+        val cmd = arrayOf("gio", "open", file.parent.pathString)
         info { "opening folder with command $cmd" }
         try {
             Runtime.getRuntime().exec(cmd)

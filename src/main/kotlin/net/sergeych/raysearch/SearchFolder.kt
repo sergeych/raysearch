@@ -337,30 +337,31 @@ data class SearchFolder(
                 } else {
                     val last = chain.last()
                     if (last.path == item) {
-                        debug { "found exact folder, therefore nothing to do" }
+                        info { "found exact folder, what to do?" }
                     } else {
-                        debug { "create and add first level folder and rescan it" }
+                        info { "create and add first level folder and rescan it" }
                         addNewFolder(chain, item)?.also { sf ->
-                            debug { "rescanning new folder $sf" }
+                            info { "rescanning new folder $sf" }
                             sf.rescan()
                         }
                     }
                 }
             } else {
                 val (chain, doc) = findFileDocChain(item)
+                info { "actualizing file plain file $item, chain is: ${chain.joinToString { it.name }}, doc is $doc"}
                 if (chain.isEmpty()) return
                 if (doc != null) {
-                    debug { "rescanning existing file" }
+                    info { "rescanning existing file" }
                     db { doc.requestRescan(it, item) }
                     return
                 }
                 // probably we already have a folder for it
                 val last = chain.last()
                 if (last.path == item.parent) {
-                    debug { "file is created in existing folder: $last" }
+                    info { "new file is created in existing folder: $last, creating file doc for it" }
                     last.createDoc(item)
                 } else {
-                    debug { "we need to create and rescan floder structure: ${last.path} -> $item" }
+                    info { "we need to create and rescan floder structure: ${last.path} -> $item" }
                     addNewFolder(chain, item.parent)
                 }
             }

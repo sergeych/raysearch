@@ -45,6 +45,7 @@ open class SearchRule : LogTag("SRUL"){
                 x in plainTexts -> PlainTextExtractor.detectCharset(file)?.let { DocDef.TextDocument(it) }
                 x == "odt" -> DocDef.OdfDef
                 x == "ods" -> DocDef.OdsDef
+                x == "pdf" -> DocDef.PdfDef
                 else -> {
                     if( reVersionedSo in file.name) {
                         debug { "versioned so: $file" }
@@ -94,8 +95,7 @@ open class SearchRule : LogTag("SRUL"){
             "db",
 
             "tmp",
-            // to implement soon:
-            "pdf",
+            // to implement one day:
             "docx", "xlsx", "doc", "xls"
         )
 

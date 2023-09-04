@@ -60,4 +60,11 @@ sealed class DocDef {
         override val textExtractor: TextExtractor = OdsExtractor()
         override val typeName: String = "ODF spreadsheet"
     }
+    @Serializable
+    @DbJson
+    @SerialName("pdf")
+    object PdfDef : DocDef() {
+        override val textExtractor: TextExtractor = PdfExtractor()
+        override val typeName: String = "PDF"
+    }
 }

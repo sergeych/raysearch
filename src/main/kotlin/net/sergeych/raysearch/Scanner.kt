@@ -7,10 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
-import net.sergeych.mp_logger.LogTag
-import net.sergeych.mp_logger.debug
-import net.sergeych.mp_logger.exception
-import net.sergeych.mp_logger.warning
+import net.sergeych.mp_logger.*
 import net.sergeych.mp_tools.globalLaunch
 import net.sergeych.tools.Debouncer
 import java.nio.file.Paths
@@ -63,6 +60,7 @@ object Scanner : LogTag("SCANR") {
                 else {
                     for (fd in fds) {
                         try {
+                            info { "rescanning $fd"}
                             indexer.addDocument(fd)
                             fd.markProcessed()
                         }
@@ -112,7 +110,7 @@ object Scanner : LogTag("SCANR") {
             // is done, we can process with events.
             debug { "watching changes" }
             FSWatch.events.collect { fe ->
-                debug { "Collected: $fe" }
+                info { "Collected: $fe" }
                 try {
                     when (fe) {
                         is FSEvent.DirCreated -> SearchFolder.actualize(fe.item)

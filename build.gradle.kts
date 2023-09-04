@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "net.sergeych"
-version = "1.0.3"
+version = "1.0.4"
 
 repositories {
     mavenCentral()
@@ -32,6 +32,7 @@ dependencies {
     implementation("br.com.devsrsouza.compose.icons:feather:1.1.0")
     implementation("org.apache.lucene:lucene-core:9.7.0")
     implementation("org.odftoolkit:odfdom-java:0.11.0")
+    implementation("org.apache.pdfbox:pdfbox:2.0.29")
 //    implementation("org.apache.lucene:lucene-queries:9.7.0")
 
     testImplementation(kotlin("test"))
