@@ -22,7 +22,13 @@ fun deleteDb() {
 }
 
 val database by lazy {
-//    deleteDb()
+    if( Params.dataSchemeVersion < 1 ) {
+        println("Old database  or no database at all, recreating:")
+        deleteDb()
+        Params.copy(dataSchemeVersion = 1).save()
+    }
+    else
+        deleteDb()
     Files.createDirectories(h2Home)
     Files.createDirectories(lucenHome)    // init lucene
     Class.forName("org.h2.Driver")

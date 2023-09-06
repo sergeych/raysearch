@@ -61,11 +61,14 @@ object Scanner : LogTag("SCANR") {
                     for (fd in fds) {
                         try {
                             info { "rescanning $fd"}
+                            println("rescanning $fd")
                             indexer.addDocument(fd)
                             fd.markProcessed()
+                            println("ok: $fd")
                         }
-                        catch(x: Exception) {
-                            warning { "failed to index document (failed to read): ${fd.docDef}: ${fd.path} "}
+                        catch(t: Throwable) {
+                            warning { "failed to index document (failed to read): ${fd.docType}: ${fd.path} "}
+                            println("rescanning failed: $fd: $t")
                             fd.markInvalid()
                         }
 //                        fd.loadText()

@@ -15,7 +15,7 @@ create table file_docs(
     search_folder_id bigint not null references search_folders(id) on delete cascade,
     file_name varchar not null,
     detected_size bigint not null,
-    doc_def json not null,
+    doc_type tinyint not null,
     processed_size bigint,
     processed_mtime timestamp,
     is_bad BOOLEAN not null default false

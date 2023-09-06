@@ -16,7 +16,7 @@ class FileDoc(
     override val id: Long,
     val fileName: String,
     val searchFolderId: Long,
-    val docDef: DocDef,
+    val docType: DocType,
     val isBad: Boolean = false,
     val processedMtime: Instant? = null,
     @Suppress("unused") val detectedSize: Long = 0,
@@ -34,7 +34,7 @@ class FileDoc(
     }
 
     fun extractText(): String =
-        docDef.textExtractor.extractTextFrom(path)
+        docType.extractTextFrom(path)
 
     fun requestRescan(dbc: DbContext, file: Path) {
         dbc.update(

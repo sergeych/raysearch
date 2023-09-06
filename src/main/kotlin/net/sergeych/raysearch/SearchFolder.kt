@@ -3,8 +3,6 @@ package net.sergeych.raysearch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import net.sergeych.kotyara.db.DbContext
 import net.sergeych.kotyara.db.Identifiable
 import net.sergeych.kotyara.db.updateAndReturn
@@ -75,13 +73,11 @@ data class SearchFolder(
 
                         n.isRegularFile() -> {
                             // if the rule gives not dd - we can't process the file
-                            rule.docDef(n)?.let {
-                                // and event if it gives, it could be invalid in theory
-                                if (it.textExtractor.isValid(n))
+                            rule.detectDocType(n)?.let {
+                                try {
                                     checkFile(it, n)
-                                else {
-                                    debug { "the file is invalid for ${it.typeName}: $n" }
-                                    markInvalid(n)
+                                } catch (x: Exception) {
+                                    info { "text extraction failed, marking as bad?" }
                                 }
                             }
                         }
@@ -101,7 +97,7 @@ data class SearchFolder(
         }
     }
 
-    suspend fun checkFile(dd: DocDef, file: Path) {
+    suspend fun checkFile(dd: DocType, file: Path) {
         db { dbc ->
             try {
                 dbc.findBy<FileDoc>(
@@ -117,9 +113,9 @@ data class SearchFolder(
                 }
                     ?: dbc.updateAndReturn<FileDoc, Long>(
                         """
-                    insert into file_docs(file_name, search_folder_id, doc_def, detected_size)
+                    insert into file_docs(file_name, search_folder_id, doc_type, detected_size)
                     values(?,?,?,?)""".trimIndent(),
-                        file.fileName.toString(), id, Json.encodeToString(dd), file.fileSize()
+                        file.fileName.toString(), id, dd, file.fileSize()
                     ).also { it.requestRescan(dbc, file) }
             } catch (x: Exception) {
                 exception { "file checking file $file" to x }
@@ -141,10 +137,10 @@ data class SearchFolder(
             else
                 dbc.updateCheck(
                     1, """
-                    insert into file_docs(file_name, search_folder_id, doc_def, detected_size, is_bad, processed_mtime)
+                    insert into file_docs(file_name, search_folder_id, doc_type, detected_size, is_bad, processed_mtime)
                     values(?,?,?,?,true,now())
                     """.trimIndent(),
-                    file.fileName.toString(), id, Json.encodeToString(DocDef.Invalid as DocDef), file.fileSize()
+                    file.fileName.toString(), id, DocType.Unknown, file.fileSize()
                 ).also {
                     debug { "created new invalid file doc" }
                 }
@@ -348,7 +344,7 @@ data class SearchFolder(
                 }
             } else {
                 val (chain, doc) = findFileDocChain(item)
-                info { "actualizing file plain file $item, chain is: ${chain.joinToString { it.name }}, doc is $doc"}
+                info { "actualizing file plain file $item, chain is: ${chain.joinToString { it.name }}, doc is $doc" }
                 if (chain.isEmpty()) return
                 if (doc != null) {
                     info { "rescanning existing file" }
@@ -374,7 +370,7 @@ data class SearchFolder(
     private suspend fun createDoc(item: Path) {
         getRule(pathString).let { rule ->
             debug { "got a rule for a file: $item -> $rule" }
-            rule.docDef(item)?.let { checkFile(it, item) }
+            rule.detectDocType(item)?.let { checkFile(it, item) }
                 ?: debug { "file should not be included into index: $item" }
         }
     }

@@ -18,7 +18,7 @@ import kotlin.io.path.*
  * and provide default format detection for files. When extending, call the super methods
  * if no custom action is required.
  */
-open class SearchRule : LogTag("SRUL"){
+open class SearchRule : LogTag("SRUL") {
     open fun shouldSkipDir(path: Path): Boolean =
         path.name.let { it.startsWith('.') || it == "tmp" || it.endsWith('~') }
                 || !path.isReadable() || path.isHidden()
@@ -28,30 +28,27 @@ open class SearchRule : LogTag("SRUL"){
      * for it.
      * @return text extractor or null if the file should be skipped
      */
-    open fun docDef(file: Path): DocDef? {
-        if( file.isSymbolicLink() || file.isHidden() || file.fileName.toString()[0] == '.')
+    open fun detectDocType(file: Path): DocType? {
+        if (file.isSymbolicLink() || file.isHidden() || file.fileName.toString()[0] == '.')
             return null
-        if( file.isDirectory())
+        if (file.isDirectory())
             throw IllegalArgumentException("can't docDef() on directory: $file")
-
-        if( file.name.endsWith('~'))
+        if (file.name.endsWith('~'))
             return null
 
-        val x= file.extension.lowercase()
+        val x = file.extension.lowercase()
         return try {
-            when {
-                x in noScanFileExtensions -> null
-                x in programSources -> PlainTextExtractor.detectCharset(file)?.let { DocDef.ProgramSource(it) }
-                x in plainTexts -> PlainTextExtractor.detectCharset(file)?.let { DocDef.TextDocument(it) }
-                x == "odt" -> DocDef.OdfDef
-                x == "ods" -> DocDef.OdsDef
-                x == "pdf" -> DocDef.PdfDef
+            when (x) {
+                in noScanFileExtensions -> null
+                in programSources, in plainTexts -> DocType.detectPlainText(file)
+                "odt" -> DocType.ODT
+                "ods" -> DocType.ODS
+                "pdf" -> DocType.PDF
                 else -> {
-                    if( reVersionedSo in file.name) {
+                    if (reVersionedSo in file.name) {
                         debug { "versioned so: $file" }
                         return null
-                    }
-                    else if( file.isExecutable() ) {
+                    } else if (file.isExecutable()) {
                         try {
                             file.inputStream().use {
                                 val shebang = it.readNBytes(2)
@@ -66,24 +63,24 @@ open class SearchRule : LogTag("SRUL"){
                             return null
                         }
                     }
-                    PlainTextExtractor.detectCharset(file)?.let { DocDef.TextDocument(it) }
+                    DocType.detectPlainText(file)
                 }
             }
-        }
-        catch(x: Throwable) {
+        } catch (x: Throwable) {
             warning { "failed to detect doc $file: $x" }
             null
         }
     }
+
     companion object {
 
         val reVersionedSo = Regex("""\.so\..*$""")
 
         val noScanFileExtensions = setOf(
             "jpg", "jpeg", "mp3", "mp4", "png", "gif", "tif", "tiff", "bmp",
-            "mov", "wav", "mpg", "mpeg", "webp", "ico", "icns", "img",
+            "mov", "wav", "mpg", "mpeg", "webp", "webm", "ico", "icns", "img",
 
-            "apk", "wasm", "bin", "exe", "kexe", "lib", "o", "so", "dll", "class", "pyc","pak",
+            "apk", "wasm", "bin", "exe", "kexe", "lib", "o", "so", "dll", "class", "pyc", "pak",
             "lib", "a", "obj",
             "dat", "sym", "dump", "hprof", "iso", "deb", "rom", "bc", "rsa", "pem",
 
@@ -119,8 +116,8 @@ open class SearchNamesRule(
     val files: Set<String> = setOf()
 ) : SearchRule() {
     override fun shouldSkipDir(path: Path): Boolean = (path.name in dirs) || super.shouldSkipDir(path)
-    override fun docDef(file: Path): DocDef? =
-        if (file.fileName.toString() in files) null else super.docDef(file)
+    override fun detectDocType(file: Path): DocType? =
+        if (file.fileName.toString() in files) null else super.detectDocType(file)
 }
 
 object DefaultSearchRule : SearchRule()
@@ -130,8 +127,4 @@ object GradleProjectRule : SearchNamesRule(
     setOf("gradle.properties", "settings.gradle.kts", "gradlew", "gradlew.bat")
 )
 
-object NpmProjectRule : SearchRule() {
-    override fun shouldSkipDir(path: Path): Boolean {
-        return path.name == "node_modules"
-    }
-}
+object NpmProjectRule : SearchNamesRule(setOf("node_modules"))

@@ -44,11 +44,10 @@ val appHomePath: Path by lazy {
 
 val Config: ConfigData by lazy {
     val file: Path = appHomePath.resolve("raysearch.yml")
-    (if (file.exists() && file.isReadable())
+    if (file.exists() && file.isReadable())
         Yaml.decodeFromString(file.readText())
     else
-        ConfigData()
-            ).also {
+        ConfigData().also {
             file.writeText(Yaml.encodeToString(it) + "\n")
         }
 }

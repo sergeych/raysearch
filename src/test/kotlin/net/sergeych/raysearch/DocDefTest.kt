@@ -5,11 +5,11 @@ import kotlin.test.Test
 
 class classDocDefTest {
     @Test
-    fun testOdt() {
-        val txt = OdtExtractor().extractTextFrom(
-            Paths.get("/home/sergeych/Documents/testing/souper.odt")
+    fun testOdT() {
+        val txt = DocType.ODS.extractTextFrom(
+            Paths.get("/home/sergeych/Documents/indigo/M1.ods")
         )
-        println(txt)
+        println("------------- text is --- [${txt}]")
     }
 
 //    @Test
