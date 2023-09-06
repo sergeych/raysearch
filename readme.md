@@ -1,13 +1,12 @@
 # Missing Linux GUI app to full-text search files
 
-> Very fast. Release Candidate. You can try to install
-> the [release candidate .deb](https://github.com/sergeych/raysearch/releases/download/v1.0.3/raysearch_1.0.4-1_amd64.deb).
-> See releases on the right panel - there could be newer than this!
+> See current release in the releases, now 1.0 is published.
+> the [release candidate .deb](https://github.com/sergeych/raysearch/releases/download/v1.0.4/raysearch_1.0.4-1_amd64.deb).
 
 __It indexes:__
 
 - program sources, plain text documents in UTF8, ASCII, ISO/IEC-88591 - autodetecting contents, markdows, etc.
-- Libre Office (Open Document Format) text documents and spreadsheets
+- Libre Office or other ODF text documents and spreadsheets.
 - The text conent of the .pdf. Note that often pdf has no text.
 
 # Search all your texts easily!
@@ -69,6 +68,10 @@ that much time. And sincerely I don't want to deal with proprietary, non-free fo
 
 Install from .deb file available in releases (see the right panel). Start with the most recent!
 
+## Note on the cryptography
+
+This software does not implement or use any cryptograpy. Thus, it can't index encrypted files. It does not check ignature on signed files. While some cryptographic functions are included as a part of some libraries this software uses, it does not use it.
+
 ## Why reinwenting the wheel?
 
 Reason d'être: I didn't find anything like, fast and neat, and grep on my software only archives takes minutes. This
@@ -82,6 +85,8 @@ nowdays ;)
 Welcome https://8-rays.dev. Unix rules!
 
 ## License
+
+I will license it under MIT real soon. Just trying to comply with apache licensed libraries.
 
 All this will soon receive MIT license - well, if they won't add clause agains red polo shirts or something worse. Right
 now the code is useless so no license yet. Contact me if you need something particularly strange. I need some advice
