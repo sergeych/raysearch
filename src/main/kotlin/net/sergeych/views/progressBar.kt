@@ -50,12 +50,19 @@ fun ScanProgressBar(modifier: Modifier = Modifier.fillMaxWidth()) {
                     fontSize = 12.sp
                 )
             } else {
-                Text(
-                    """
+                Row {
+                    Text(
+                        """
                     Indexed ${stats.total.files.withThousandsSeparator("\u200A")} files, ${stats.total.size.toDataSize()}
                 """.trimIndent(),
-                    fontSize = 12.sp
-                )
+                        Modifier.weight(1f),
+                        fontSize = 12.sp,
+                    )
+                    Text(
+                        "v.${System.getProperty("app.version")  ?: "dev"}",
+                        fontSize = 12.sp,
+                    )
+                }
             }
         }
 

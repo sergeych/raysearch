@@ -27,8 +27,6 @@ val database by lazy {
         deleteDb()
         Params.copy(dataSchemeVersion = 1).save()
     }
-    else
-        deleteDb()
     Files.createDirectories(h2Home)
     Files.createDirectories(lucenHome)    // init lucene
     Class.forName("org.h2.Driver")

@@ -48,15 +48,17 @@ compose.desktop {
     application {
         mainClass = "EightRaysSearchKt"
         buildTypes.release.proguard {
-//            obfuscate.set(false)
-//            isEnabled.set(false)
+            obfuscate.set(false)
+            isEnabled.set(false)
         }
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "raysearch"
 //            val iconsRoot = project.file("src/main/resources/launcher_icons")
-            modules("java.sql","java.instrument", "java.sql", "jdk.unsupported", "jdk.zipfs")
-//            includeAllModules = true
+//            modules("java.sql","java.instrument", "java.sql", "jdk.unsupported",
+//                "java.xml.crypto", "jdk.xml.dom",
+//                "jdk.zipfs")
+            includeAllModules = true
             description = "File content indexing (text) and fast search"
             copyright = "© 2023 Sergey S. Chernov. All rights reserved."
             vendor = "real.sergeych@gmail.com"
