@@ -1,7 +1,7 @@
 # Missing Linux GUI app to full-text search files
 
 > See current release in the releases, now 1.0 is published.
-> the [release candidate .deb](https://github.com/sergeych/raysearch/releases/download/v1.0.4/raysearch_1.0.4-1_amd64.deb).
+> the [release 1.0 .deb](https://github.com/sergeych/raysearch/releases/download/v1.0.4/raysearch_1.0.4-1_amd64.deb).
 
 __It indexes:__
 
