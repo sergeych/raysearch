@@ -27,7 +27,7 @@ dependencies {
     implementation(compose.desktop.currentOs)
     implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
     implementation("com.h2database:h2:2.2.220")
-    implementation("net.sergeych:kotyara:1.4.2-SNAPSHOT")
+    implementation("net.sergeych:kotyara:1.4.3-SNAPSHOT")
     implementation("net.sergeych:mp_stools:1.4.1-SNAPSHOT")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
     implementation("br.com.devsrsouza.compose.icons:feather:1.1.0")
@@ -63,10 +63,16 @@ compose.desktop {
             description = "File content indexing (text) and fast search"
             copyright = "© 2023 Sergey S. Chernov. All rights reserved."
             vendor = "real.sergeych@gmail.com"
+
             linux {
                 menuGroup = "tools"
                 appCategory = "search   "
                 iconFile.set(project.file("src/main/resources/launcher_icons/raysearch.png"))
+            }
+            windows {
+                menuGroup = "tools"
+                upgradeUuid = "59e3dbfd-31b7-4ee1-995c-e7687760e400"
+                iconFile.set(project.file("/src/main/resources/launcher_icons/raysearch.ico"))
             }
 //            licenseFile.set(project.file("LICENSE.txt"))
         }

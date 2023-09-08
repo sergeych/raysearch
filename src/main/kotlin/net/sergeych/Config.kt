@@ -4,6 +4,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import net.mamoe.yamlkt.Yaml
 import net.sergeych.mp_logger.*
+import net.sergeych.tools.PlatformType
+import net.sergeych.tools.detectedPlatform
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
@@ -26,24 +28,35 @@ data class ConfigData(
     }
 
     fun openFile(file: Path) {
-        val cmd = arrayOf("gio", "open", file.pathString)
-        info { "opening file with command $cmd" }
+        val cmd =
+            when(detectedPlatform) {
+                PlatformType.Linux -> arrayOf("gio", "open", file.pathString)
+                PlatformType.Windows -> arrayOf("explorer.exe", file.pathString)
+                else -> arrayOf("open", file.pathString)
+            }
+
+        info { "opening file with command ${cmd.toList()}" }
         try {
             Runtime.getRuntime().exec(cmd)
             info { "open ok" }
         } catch (t: Throwable) {
-            exception { "failed to execute '$cmd`" to t }
+            exception { "failed to execute '${cmd.toList()}`" to t }
         }
     }
 
     fun openFolder(file: Path) {
-        val cmd = arrayOf("gio", "open", file.parent.pathString)
-        info { "opening folder with command $cmd" }
+        val cmd =
+            when(detectedPlatform) {
+                PlatformType.Linux -> arrayOf("gio", "open", file.parent.pathString)
+                PlatformType.Windows -> arrayOf("explorer.exe", file.parent.pathString)
+                else -> arrayOf("open", file.pathString)
+            }
+        info { "opening folder with command ${cmd.toList()}" }
         try {
             Runtime.getRuntime().exec(cmd)
             info { "open ok" }
         } catch (t: Throwable) {
-            exception { "failed to execute '$cmd`" to t }
+            exception { "failed to execute '${cmd.toList()}'" to t }
         }
     }
 }

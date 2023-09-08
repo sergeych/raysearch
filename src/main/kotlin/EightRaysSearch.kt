@@ -16,29 +16,26 @@ import net.sergeych.appHomePath
 import net.sergeych.mp_logger.FileLogCatcher
 import net.sergeych.mp_logger.Log
 import net.sergeych.raysearch.Scanner
+import net.sergeych.tools.PlatformType
 import net.sergeych.views.App
 import kotlin.io.path.pathString
 
-//private val log = LogTag("MAIN")
-
-enum class PlatformType {
-    Linux, Windows, Macos, Unknown;
-
-    val isLinux: Boolean get() = this == Linux
-}
-
 val detectedPlatform: PlatformType by lazy {
-    when (System.getProperty("os.name").lowercase()) {
-        "linux" -> PlatformType.Linux
-        "windows" -> PlatformType.Windows
+    val p = System.getProperty("os.name").lowercase()
+    println("system reports: $p")
+    when {
+        p == "linux" -> PlatformType.Linux
+        p.startsWith("windows") -> PlatformType.Windows
         // I'm not sure about it as there is no reason to run it on mac
-        "macos" -> PlatformType.Macos
+        p == "macos" -> PlatformType.Macos
         else -> PlatformType.Unknown
     }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
+    println("detected platform is: $detectedPlatform")
+
     Log.connectConsole(Log.Level.INFO)
     FileLogCatcher(appHomePath.resolve("raysearch.log").pathString, Config.fileLogLevel, true)
     Log.defaultLevel = Log.Level.DEBUG
