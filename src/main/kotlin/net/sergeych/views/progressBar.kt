@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import net.sergeych.Config
 import net.sergeych.mp_tools.toDataSize
 import net.sergeych.mp_tools.withThousandsSeparator
 import net.sergeych.raysearch.Scanner
@@ -59,7 +60,7 @@ fun ScanProgressBar(modifier: Modifier = Modifier.fillMaxWidth()) {
                         fontSize = 12.sp,
                     )
                     Text(
-                        "v.${System.getProperty("app.version")  ?: "dev"}",
+                        "v.${Config.version}",
                         fontSize = 12.sp,
                     )
                 }

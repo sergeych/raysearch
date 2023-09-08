@@ -1,5 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+import java.util.*
 
 plugins {
     kotlin("jvm")
@@ -69,5 +70,15 @@ compose.desktop {
             }
 //            licenseFile.set(project.file("LICENSE.txt"))
         }
+    }
+}
+
+tasks.withType<ProcessResources>() {
+    doLast {
+        val propertiesFile = file("$buildDir/resources/main/version.properties")
+        propertiesFile.parentFile.mkdirs()
+        val properties = Properties()
+        properties.setProperty("version", rootProject.version.toString())
+        propertiesFile.writer().use { properties.store(it, null) }
     }
 }

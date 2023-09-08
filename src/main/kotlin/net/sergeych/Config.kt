@@ -6,6 +6,7 @@ import net.mamoe.yamlkt.Yaml
 import net.sergeych.mp_logger.*
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.*
 import kotlin.io.path.*
 
 
@@ -13,6 +14,16 @@ import kotlin.io.path.*
 data class ConfigData(
     val fileLogLevel: Log.Level = Log.Level.DEBUG
 ) : Loggable by LogTag("CONF") {
+
+    private val versionProps by lazy {
+        Properties().also {
+            it.load(this.javaClass.getResourceAsStream("/version.properties"))
+        }
+    }
+
+    val version by lazy {
+        versionProps.getProperty("version") ?: "no version"
+    }
 
     fun openFile(file: Path) {
         val cmd = arrayOf("gio", "open", file.pathString)
