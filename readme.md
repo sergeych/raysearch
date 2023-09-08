@@ -3,6 +3,8 @@
 > See current release in the releases, now 1.0 is published.
 > the [release 1.0 .deb](https://github.com/sergeych/raysearch/releases/download/v1.0.4/raysearch_1.0.4-1_amd64.deb).
 
+You can checn the latest release with background functionality from releases, 1.1.* is already being published.
+
 __It indexes:__
 
 - program sources, plain text documents in UTF8, ASCII, ISO/IEC-88591 - autodetecting contents, markdows, etc.
