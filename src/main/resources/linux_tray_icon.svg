@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="feather feather-search"
+        version="1.1"
+        id="svg1"
+        sodipodi:docname="linux_tray_search.svg"
+        inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+        inkscape:export-filename="linux_tray_search.png"
+        inkscape:export-xdpi="1024"
+        inkscape:export-ydpi="1024"
+        xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+        xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+        xmlns="http://www.w3.org/2000/svg"
+>
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#747474"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="38.375"
+     inkscape:cx="11.986971"
+     inkscape:cy="12"
+     inkscape:window-width="1920"
+     inkscape:window-height="1163"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <rect
+     style="fill:#000000;stroke:#000000;stroke-width:3.00835;stroke-linecap:round;stroke-linejoin:miter"
+     id="rect1"
+     width="18.991648"
+     height="18.99165"
+     x="2.289289"
+     y="1.9464552" />
+  <circle
+     cx="11"
+     cy="11"
+     r="8"
+     id="circle1"
+     style="stroke:#f9f9f9" />
+  <line
+     x1="21"
+     y1="21"
+     x2="16.65"
+     y2="16.65"
+     id="line1"
+     style="stroke:#f9f9f9"
+     inkscape:export-filename="./line1.png"
+     inkscape:export-xdpi="1005.1473"
+     inkscape:export-ydpi="1005.1473" />
+</svg>
