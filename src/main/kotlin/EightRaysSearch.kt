@@ -39,14 +39,14 @@ val detectedPlatform: PlatformType by lazy {
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
+    Log.connectConsole(Log.Level.INFO)
+    FileLogCatcher(appHomePath.resolve("raysearch.log").pathString, Config.fileLogLevel, true)
+    Log.defaultLevel = Log.Level.DEBUG
+    Scanner.setup(listOf(System.getProperties().getProperty("user.home")))
+
     application {
+
         var isOpen by remember { mutableStateOf(true) }
-
-        Log.connectConsole(Log.Level.INFO)
-        FileLogCatcher(appHomePath.resolve("raysearch.log").pathString, Config.fileLogLevel, true)
-        Log.defaultLevel = Log.Level.DEBUG
-
-
         val trayState = rememberTrayState()
 
         Tray(
@@ -74,9 +74,6 @@ fun main() {
                 )
             }
         )
-        // we don't want to start it if it failed tray initialization
-
-        Scanner.setup(listOf(System.getProperties().getProperty("user.home")))
 
         if (isOpen) {
             Window(
