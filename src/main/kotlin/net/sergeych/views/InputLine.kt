@@ -1,7 +1,6 @@
 package net.sergeych.views
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
@@ -17,7 +16,10 @@ import net.sergeych.tools.rememberDebouncer
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun InputLine(initialValue: String = "", onChanged: (String) -> Unit) {
+fun InputLine(initialValue: String = "",
+              modifier: Modifier = Modifier,
+              trailingIcon: @Composable (() -> Unit)? = null,
+              onChanged: (String) -> Unit) {
     var text by remember { mutableStateOf(initialValue) }
     val fr = FocusRequester()
     val changer = rememberDebouncer(300.milliseconds) {
@@ -29,7 +31,7 @@ fun InputLine(initialValue: String = "", onChanged: (String) -> Unit) {
             text = it
             changer.schedule()
         },
-        Modifier.fillMaxWidth().focusRequester(fr),
+        modifier.focusRequester(fr),
         label = {
             Text("enter search string here")
         },
@@ -45,6 +47,7 @@ fun InputLine(initialValue: String = "", onChanged: (String) -> Unit) {
                 contentScale = ContentScale.Fit
             )
         },
+        trailingIcon = trailingIcon,
         maxLines = 1,
     )
 

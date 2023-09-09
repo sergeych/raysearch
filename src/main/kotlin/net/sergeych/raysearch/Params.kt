@@ -1,5 +1,7 @@
 package net.sergeych.raysearch
 
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -11,23 +13,29 @@ import kotlin.io.path.isReadable
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
-private val file: Path = appHomePath.resolve("raysearch_params.json")
-
 @Serializable
 data class ParamsData(
     val dataSchemeVersion: Int = 0,
-    val backgroundModeWarningShown: Boolean = false
+    val backgroundModeWarningShown: Boolean = false,
+    val runInBackground: Boolean = true
 ) {
-    fun save() {
-        file.writeText(Json.encodeToString(this))
-    }
 }
 
+private val file: Path = appHomePath.resolve("raysearch_params.json")
 
-val Params: ParamsData by lazy {
+val _paramsState = MutableStateFlow<ParamsData>(
     if (file.exists() && file.isReadable())
         Json.decodeFromString(file.readText())
     else
         ParamsData().also { it.save() }
+)
+
+val paramsStateFlow = _paramsState.asStateFlow()
+
+fun ParamsData.save() {
+    file.writeText(Json.encodeToString(this))
+    _paramsState.value = this
 }
+
+val Params: ParamsData get() = _paramsState.value
 
