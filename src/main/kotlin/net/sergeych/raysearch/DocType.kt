@@ -7,6 +7,7 @@ import org.apache.pdfbox.io.RandomAccessBufferedFileInputStream
 import org.apache.pdfbox.pdfparser.PDFParser
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
+import org.apache.tika.Tika
 import org.odftoolkit.odfdom.doc.OdfDocument
 import org.odftoolkit.odfdom.doc.OdfSpreadsheetDocument
 import org.odftoolkit.odfdom.doc.OdfTextDocument
@@ -19,12 +20,14 @@ import kotlin.io.path.readBytes
 import kotlin.io.path.readText
 
 enum class DocType(val extractTextFrom: (Path) -> String) {
+    @Suppress("unused")
     Unknown({ "" }),
     ISO8859_1({ it.readText(Charsets.ISO_8859_1) }),
     UTF8({ it.readText(Charsets.UTF_8) }),
     PDF({ extractFromPdf(it) }),
     ODT({ extractFromOdt(it) }),
     ODS({ extractFromOds(it) }),
+    Other({extractWithTika(it)})
     ;
 
     companion object : LogTag("DocType") {
@@ -32,7 +35,7 @@ enum class DocType(val extractTextFrom: (Path) -> String) {
             isUTF8(x) -> UTF8
             isAscii(x) -> ISO8859_1
             else -> {
-                info { "can' detect encoding of the text file: $x" }
+                info { "can't detect encoding of the text file: $x" }
                 null
             }
         }
@@ -112,4 +115,7 @@ fun isAscii(file: Path): Boolean {
         return true
     }
 }
+
+fun extractWithTika(file: Path): String = Tika().parseToString(file)
+
 

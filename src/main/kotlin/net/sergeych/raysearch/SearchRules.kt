@@ -44,6 +44,10 @@ open class SearchRule : LogTag("SRUL") {
                 "odt" -> DocType.ODT
                 "ods" -> DocType.ODS
                 "pdf" -> DocType.PDF
+                "" -> if( file.fileSize() < 512*1024 )
+                    DocType.detectPlainText(file)
+                else
+                    null
                 else -> {
                     if (reVersionedSo in file.name) {
                         debug { "versioned so: $file" }
@@ -63,7 +67,7 @@ open class SearchRule : LogTag("SRUL") {
                             return null
                         }
                     }
-                    DocType.detectPlainText(file)
+                    DocType.Other
                 }
             }
         } catch (x: Throwable) {
@@ -81,19 +85,18 @@ open class SearchRule : LogTag("SRUL") {
             "mov", "wav", "mpg", "mpeg", "webp", "webm", "ico", "icns", "img",
 
             "apk", "wasm", "bin", "exe", "kexe", "lib", "o", "so", "dll", "class", "pyc", "pak",
-            "lib", "a", "obj",
+            "lib", "a", "obj", "lock",
             "dat", "sym", "dump", "hprof", "iso", "deb", "rom", "bc", "rsa", "pem",
+            "proto", "protobuff",
 
             "eot", "ttf", "woff",
             "zsync", "ztext",
-            "unikey", "unicontract",
+            "unikey", "unicontract", "unicontrat",
 
             "zip", "bz2", "gz", "7z", "jar",
             "db",
 
             "tmp",
-            // to implement one day:
-            "docx", "xlsx", "doc", "xls"
         )
 
         val programSources = setOf(
@@ -121,6 +124,11 @@ open class SearchNamesRule(
 }
 
 object DefaultSearchRule : SearchRule()
+
+object SkipAllRule : SearchRule() {
+    override fun shouldSkipDir(path: Path): Boolean = true
+    override fun detectDocType(file: Path): DocType? = null
+}
 
 object GradleProjectRule : SearchNamesRule(
     setOf("build", "gradle", "node_modules"),

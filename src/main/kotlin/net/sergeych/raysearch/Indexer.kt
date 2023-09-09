@@ -80,23 +80,33 @@ class Indexer(path: Path) : LogTag("INDX") {
         access.withReentrantLock { writer.commit() }
     }
 
-    suspend fun addDocument(fdoc: FileDoc) {
-        val contentField = TextField(FN_CONTENT, fdoc.extractText(), Field.Store.NO)
-        val pathField = StringField(FN_PATH, fdoc.path.parent?.pathString?.lowercase() ?: "", Field.Store.NO)
-        val fileNameField = StringField(FN_FILENAME, fdoc.path.fileName.pathString.lowercase(), Field.Store.NO)
-        val idField = LongField(FN_ID, fdoc.id, Field.Store.YES)
-        val doc = Document()
-        doc.add(contentField)
-        doc.add(pathField)
-        doc.add(fileNameField)
-        doc.add(idField)
-        access.withReentrantLock {
-            deleteDocument(fdoc)
-            writer.addDocument(doc)
+    /**
+     * Add document to index
+     * @return true if the document was indexed and false otherwise (invalid)
+     */
+    suspend fun addDocument(fdoc: FileDoc): Boolean =
+        try {
+            val contentField = TextField(FN_CONTENT, fdoc.extractText(), Field.Store.NO)
+            val pathField = StringField(FN_PATH, fdoc.path.parent?.pathString?.lowercase() ?: "", Field.Store.NO)
+            val fileNameField = StringField(FN_FILENAME, fdoc.path.fileName.pathString.lowercase(), Field.Store.NO)
+            val idField = LongField(FN_ID, fdoc.id, Field.Store.YES)
+            val doc = Document()
+            doc.add(contentField)
+            doc.add(pathField)
+            doc.add(fileNameField)
+            doc.add(idField)
+            access.withReentrantLock {
+                deleteDocument(fdoc)
+                writer.addDocument(doc)
+            }
+            changedChannel.trySend(Unit)
+            debug { "indexed: $fdoc" }
+            true
         }
-        changedChannel.trySend(Unit)
-        debug { "indexed: $fdoc" }
-    }
+        catch(t: Exception) {
+            warning { "failed to index dic $fdoc: $t" }
+            false
+        }
 
     suspend fun deleteDocument(fdoc: FileDoc) {
         access.withReentrantLock {

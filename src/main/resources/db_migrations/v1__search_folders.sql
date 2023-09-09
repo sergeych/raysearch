@@ -18,9 +18,9 @@ create table file_docs(
     doc_type tinyint not null,
     processed_size bigint,
     processed_mtime timestamp,
-    is_bad BOOLEAN not null default false
+    marked_as_bad smallint
 );
 
 create unique index ix_file_folder on file_docs(search_folder_id,file_name);
 
-create index ix_file_processed on file_docs(processed_mtime,is_bad);
+create index ix_file_processed on file_docs(processed_mtime,marked_as_bad,detected_size);

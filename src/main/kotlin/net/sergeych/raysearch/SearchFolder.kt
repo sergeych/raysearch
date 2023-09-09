@@ -123,30 +123,6 @@ data class SearchFolder(
         }
     }
 
-    suspend fun markInvalid(file: Path) {
-        db { dbc ->
-            val cnt = dbc.update(
-                """
-                    update file_docs 
-                    set processed_mtime=now(), is_bad=true 
-                    where search_folder_id=? and file_name=?""".trimIndent(),
-                id, file.fileName.toString()
-            )
-            if (cnt == 1)
-                debug { "updated existing file as bad: $file" }
-            else
-                dbc.updateCheck(
-                    1, """
-                    insert into file_docs(file_name, search_folder_id, doc_type, detected_size, is_bad, processed_mtime)
-                    values(?,?,?,?,true,now())
-                    """.trimIndent(),
-                    file.fileName.toString(), id, DocType.Unknown, file.fileSize()
-                ).also {
-                    debug { "created new invalid file doc" }
-                }
-        }
-    }
-
     suspend fun delete() {
         debug { "starting removing folder $this" }
         for (f in files())
@@ -194,6 +170,9 @@ data class SearchFolder(
                                     )
                     ->
                         NpmProjectRule
+
+                    parentPath.lowercase().endsWith("android/sdk") ->
+                        SkipAllRule
 
                     else ->
                         DefaultSearchRule

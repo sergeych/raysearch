@@ -8,6 +8,7 @@ import net.sergeych.kotyara.db.updateCheck
 import net.sergeych.mp_logger.LogTag
 import net.sergeych.mp_logger.Loggable
 import net.sergeych.mp_logger.debug
+import net.sergeych.mp_logger.info
 import java.nio.file.Path
 import kotlin.io.path.fileSize
 import kotlin.io.path.getLastModifiedTime
@@ -17,11 +18,13 @@ class FileDoc(
     val fileName: String,
     val searchFolderId: Long,
     val docType: DocType,
-    val isBad: Boolean = false,
+    val markedAsBad: Int? = null,
     val processedMtime: Instant? = null,
     @Suppress("unused") val detectedSize: Long = 0,
     val processedSize: Long? = null,
 ) : Identifiable<Long>, Loggable by LogTag("FD${id}:$fileName") {
+
+    val isBad: Boolean get() = markedAsBad != null && markedAsBad >= currentBadMark
 
     val folderRef = hasOne<SearchFolder> { searchFolderId }
 
@@ -40,7 +43,7 @@ class FileDoc(
         dbc.update(
             """
             update file_docs
-            set processed_mtime = null, processed_size = null, is_bad = false, detected_size = ?
+            set processed_mtime = null, processed_size = null, marked_as_bad = null, detected_size = ?
             where id=?
         """.trimIndent(), file.fileSize(), id
         )
@@ -60,7 +63,7 @@ class FileDoc(
 
     override fun toString(): String = logTag
     suspend fun delete() {
-        debug { "deleting, no more neede ;)" }
+        debug { "deleting, no more needed ;)" }
         indexer.deleteDocument(this)
         inDb { update("delete from file_docs where id=?", id) }
         debug { "deleted" }
@@ -68,15 +71,29 @@ class FileDoc(
 
     suspend fun markInvalid() {
         inDb { updateCheck(1,
-            "update file_docs set processed_mtime=now(),is_bad=true where id=?", id)
+            "update file_docs set processed_mtime=now(),marked_as_bad=? where id=?",
+            currentBadMark, id)
+            info { "marked as invalid ($currentBadMark)"}
         }
     }
 
     companion object {
+
+        const val currentBadMark = 1
+        const val currentMaxSize = 3_145_726
+
+        const val notBadCondition = "(marked_as_bad is null or marked_as_bad < $currentBadMark)"
+        const val sizeLimitCondition = "(detected_size <= $currentMaxSize and detected_size > 0)"
+
+        const val processableCondition = "($notBadCondition and $sizeLimitCondition)"
+
         suspend fun firstNotProcessed(count: Int = 10): List<FileDoc> =
             inDb {
                 query(
-                    "select * from file_docs where processed_mtime is null and not is_bad limit ?",
+                    """select * from file_docs 
+                       where processed_mtime is null and
+                            $notBadCondition and $sizeLimitCondition
+                       limit ?""".trimIndent(),
                     count
                 )
             }

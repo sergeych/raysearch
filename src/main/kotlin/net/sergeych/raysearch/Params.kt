@@ -15,7 +15,8 @@ private val file: Path = appHomePath.resolve("raysearch_params.json")
 
 @Serializable
 data class ParamsData(
-    val dataSchemeVersion: Int = 0
+    val dataSchemeVersion: Int = 0,
+    val backgroundModeWarningShown: Boolean = false
 ) {
     fun save() {
         file.writeText(Json.encodeToString(this))

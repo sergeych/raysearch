@@ -27,14 +27,19 @@ dependencies {
     implementation(compose.desktop.currentOs)
     implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
     implementation("com.h2database:h2:2.2.220")
-    implementation("net.sergeych:kotyara:1.4.3-SNAPSHOT")
+    implementation("net.sergeych:kotyara:1.4.3")
     implementation("net.sergeych:mp_stools:1.4.1-SNAPSHOT")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
     implementation("br.com.devsrsouza.compose.icons:feather:1.1.0")
     implementation("org.apache.lucene:lucene-core:9.7.0")
     implementation("org.odftoolkit:odfdom-java:0.11.0")
     implementation("org.apache.pdfbox:pdfbox:2.0.29")
-//    implementation("org.apache.lucene:lucene-queries:9.7.0")
+
+    implementation("org.apache.tika:tika-core:2.9.0")
+    implementation("org.apache.tika:tika-parsers-standard-package:2.9.0")
+
+//    implementation("net.sergeych:mp_stools:1.4.1-SNAPSHOT")
+    implementation("net.sergeych:mp_bintools:0.0.3-SNAPSHOT")
 
     testImplementation(kotlin("test"))
 }

@@ -11,6 +11,8 @@ import net.sergeych.mp_logger.*
 import net.sergeych.mp_tools.globalLaunch
 import net.sergeych.tools.Debouncer
 import java.nio.file.Paths
+import kotlin.io.path.extension
+import kotlin.io.path.fileSize
 import kotlin.time.Duration.Companion.milliseconds
 
 object Scanner : LogTag("SCANR") {
@@ -35,14 +37,14 @@ object Scanner : LogTag("SCANR") {
                 """
                 select count(*) as files, coalesce(sum(detected_size),0) as size 
                 from file_docs
-                where processed_mtime is null and is_bad=false
+                where processed_mtime is null and ${FileDoc.processableCondition}
             """.trimIndent()
             )!!
             val s2 = queryRow<Stat>(
                 """
                 select count(*) as files, coalesce(sum(detected_size),0) as size
                 from file_docs
-                where processed_mtime is not null and is_bad=false
+                where processed_mtime is not null and ${FileDoc.processableCondition}
             """.trimIndent()
             )!!
             _stats.value = Stats(s1 + s2, s2)
@@ -51,25 +53,39 @@ object Scanner : LogTag("SCANR") {
 
     private val scannerPulser = Channel<Unit>(0)
 
+    val okExts = mutableSetOf<String>()
+    val badExts = mutableSetOf<String>()
+
     fun startScanner() {
         globalLaunch {
             while (isActive) {
                 val fds = FileDoc.firstNotProcessed(50)
-                if (fds.isEmpty())
+                if (fds.isEmpty()) {
+                    info { "Scanner step done, ok exts: $okExts" }
+                    info { "bad exts: $badExts" }
                     scannerPulser.receive()
+                }
                 else {
                     for (fd in fds) {
                         try {
-                            info { "rescanning $fd"}
-                            println("rescanning $fd")
-                            indexer.addDocument(fd)
-                            fd.markProcessed()
-                            println("ok: $fd")
-                        }
-                        catch(t: Throwable) {
-                            warning { "failed to index document (failed to read): ${fd.docType}: ${fd.path} "}
-                            println("rescanning failed: $fd: $t")
+                            if (fd.detectedSize == 0L || fd.path.fileSize() == 0L) {
+                                info { "empty file, will watch and scan later: ${fd.path}" }
+                            } else {
+                                if (indexer.addDocument(fd)) {
+                                    debug { "success indexing $fd" }
+                                    fd.markProcessed()
+                                    okExts += fd.path.extension
+                                } else {
+                                    info { "failed indexing ${fd.path}" }
+                                    fd.markInvalid()
+                                    badExts += fd.path.extension
+                                }
+                            }
+                        } catch (t: Throwable) {
+                            warning { "failed to index document (failed to read): ${fd.docType}: ${fd.path} " }
                             fd.markInvalid()
+                            badExts += fd.path.extension
+
                         }
 //                        fd.loadText()
                     }
