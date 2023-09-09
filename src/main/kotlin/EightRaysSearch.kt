@@ -1,5 +1,4 @@
 import androidx.compose.runtime.*
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.key
@@ -14,6 +13,9 @@ import net.sergeych.raysearch.Scanner
 import net.sergeych.raysearch.paramsStateFlow
 import net.sergeych.tools.PlatformType
 import net.sergeych.views.App
+import org.apache.logging.log4j.LogManager
+import java.util.logging.ConsoleHandler
+import java.util.logging.Logger
 import kotlin.io.path.pathString
 
 val detectedPlatform: PlatformType by lazy {
@@ -22,14 +24,25 @@ val detectedPlatform: PlatformType by lazy {
     when {
         p == "linux" -> PlatformType.Linux
         p.startsWith("windows") -> PlatformType.Windows
-        // I'm not sure about it as there is no reason to run it on mac
+        // I'm not sure about it as there is no reason to run it on Mac
         p == "macos" -> PlatformType.Macos
         else -> PlatformType.Unknown
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+private class LogFixer {
+    init {
+        val logger = Logger.getLogger(LogFixer::class.java.getName())
+        logger.addHandler(ConsoleHandler())
+    }
+}
+
 fun main() {
+    LogFixer()
+    val l = LogManager.getRootLogger()
+    l.info("test")
+//    System.exit(0)
+
     println("detected platform is: $detectedPlatform")
 
     Log.connectConsole(Log.Level.INFO)

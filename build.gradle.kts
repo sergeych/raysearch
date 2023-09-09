@@ -40,6 +40,8 @@ dependencies {
 
 //    implementation("net.sergeych:mp_stools:1.4.1-SNAPSHOT")
     implementation("net.sergeych:mp_bintools:0.0.3-SNAPSHOT")
+    implementation("org.apache.logging.log4j:log4j-core:2.19.0")
+
 
     testImplementation(kotlin("test"))
 }
@@ -64,7 +66,11 @@ compose.desktop {
 //            modules("java.sql","java.instrument", "java.sql", "jdk.unsupported",
 //                "java.xml.crypto", "jdk.xml.dom",
 //                "jdk.zipfs")
-            includeAllModules = true
+            modules("java.base", "java.compiler", "java.instrument", "java.management",
+                "java.naming", "java.rmi", "java.scripting", "java.sql", "java.xml.crypto",
+                "jdk.unsupported", "jdk.xml.dom", "jdk.zipfs")
+
+//            includeAllModules = true
             description = "File content indexing (text) and fast search"
             copyright = "© 2023 Sergey S. Chernov. All rights reserved."
             vendor = "real.sergeych@gmail.com"
