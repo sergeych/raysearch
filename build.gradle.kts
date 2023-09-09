@@ -39,7 +39,7 @@ dependencies {
     implementation("org.apache.tika:tika-parsers-standard-package:2.9.0")
 
 //    implementation("net.sergeych:mp_stools:1.4.1-SNAPSHOT")
-    implementation("net.sergeych:mp_bintools:0.0.3-SNAPSHOT")
+//    implementation("net.sergeych:mp_bintools:0.0.3-SNAPSHOT")
     implementation("org.apache.logging.log4j:log4j-core:2.19.0")
 
 
