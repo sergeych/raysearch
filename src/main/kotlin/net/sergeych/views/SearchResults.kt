@@ -15,8 +15,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.sergeych.Config
 import net.sergeych.raysearch.Indexer
+import net.sergeych.sprintf.sprintf
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.getLastModifiedTime
 
 @Preview
 @Composable
@@ -25,15 +27,25 @@ fun TestCard() {
 }
 @Composable fun FileCard(file: Path) {
     Card(Modifier.fillMaxWidth().padding(4.dp)) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(file.fileName.toString(),fontSize = 18.sp, fontWeight = FontWeight.Medium, fontFamily = FontFamily.SansSerif,
-                modifier = Modifier.clickable {
-                    Config.openFile(file)
-                })
-            Text(file.parent.toString(), fontSize = 12.sp,
-                modifier = Modifier.clickable {
-                    Config.openFolder(file)
-                })
+        Row(Modifier.padding(2.dp).padding(end=5.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(file.fileName.toString(),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = FontFamily.SansSerif,
+                    modifier = Modifier.clickable {
+                        Config.openFile(file)
+                    })
+                Text(file.parent.toString(), fontSize = 12.sp,
+                    modifier = Modifier.clickable {
+                        Config.openFolder(file)
+                    })
+            }
+            Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                val d = file.getLastModifiedTime().toInstant()
+                Text("%tT".sprintf(d), fontSize = 14.sp)
+                Text("%1!tF".sprintf(d), fontSize = 14.sp)
+            }
         }
     }
 
