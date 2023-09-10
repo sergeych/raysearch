@@ -1,5 +1,6 @@
 package net.sergeych.views
 
+import androidx.compose.animation.*
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -27,50 +28,59 @@ import kotlin.time.Duration.Companion.milliseconds
 @Preview
 fun App() {
     MaterialTheme {
-        Column {
-            var pattern by remember { mutableStateOf("") }
-            var busy by remember { mutableStateOf(false) }
-            var showSettings by remember { mutableStateOf(false) }
-            var nothingFound by remember { mutableStateOf(false) }
-            val list = remember { mutableStateListOf<Indexer.Result>() }
-            val deb = rememberDebouncer(410.milliseconds, 2000.milliseconds) {
-                if (pattern == "") list.clear()
-                else {
-                    busy = true
-                    list.clear()
-                    runCatching {
-                        list.addAll(indexer.search(pattern, 50))
-                        nothingFound = list.isEmpty()
-                    }
-                    busy = false
-                }
-            }
-            val debIndexChange = rememberDebouncer(500.milliseconds, 500.milliseconds) {
-                // this one is called when the index is changed, so we should not cause a lot of
-                // flickering on the displayed result, so we do it silently:
-                val newList = indexer.search(pattern, 50)
-                if (newList.size != list.size
-                    || list.zip(newList).any { it.first.fd.id != it.second.fd.id }
-                ) {
-                    list.clear()
-                    list.addAll(newList)
+        var pattern by remember { mutableStateOf("") }
+        var busy by remember { mutableStateOf(false) }
+        var showSettings by remember { mutableStateOf(false) }
+        var nothingFound by remember { mutableStateOf(false) }
+        val list = remember { mutableStateListOf<Indexer.Result>() }
+        val deb = rememberDebouncer(410.milliseconds, 2000.milliseconds) {
+            if (pattern == "") list.clear()
+            else {
+                busy = true
+                list.clear()
+                runCatching {
+                    list.addAll(indexer.search(pattern, 50))
                     nothingFound = list.isEmpty()
                 }
-
+                busy = false
             }
-            LaunchedEffect(true) {
-                while (isActive) {
-                    indexer.changed.receive()
-                    debIndexChange.schedule()
-                }
+        }
+        val debIndexChange = rememberDebouncer(500.milliseconds, 500.milliseconds) {
+            // this one is called when the index is changed, so we should not cause a lot of
+            // flickering on the displayed result, so we do it silently:
+            val newList = indexer.search(pattern, 50)
+            if (newList.size != list.size
+                || list.zip(newList).any { it.first.fd.id != it.second.fd.id }
+            ) {
+                list.clear()
+                list.addAll(newList)
+                nothingFound = list.isEmpty()
             }
 
-            if (showSettings) {
-                SettingsView {
-                    showSettings = false
-                }
-            } else {
+        }
+        LaunchedEffect(true) {
+            while (isActive) {
+                indexer.changed.receive()
+                debIndexChange.schedule()
+            }
+        }
 
+        AnimatedVisibility(
+            showSettings,
+            enter = expandHorizontally(expandFrom = Alignment.Start) + fadeIn(),
+            exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut()
+        ) {
+//            if (showSettings) {
+            SettingsView {
+                showSettings = false
+            }
+        }
+        AnimatedVisibility(
+            !showSettings,
+            enter = expandHorizontally(expandFrom = Alignment.End),
+            exit = shrinkHorizontally(shrinkTowards = Alignment.End)
+        ) {
+            Column {
                 InputLine(pattern, modifier = Modifier.fillMaxWidth(),
                     trailingIcon = {
                         Image(

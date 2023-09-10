@@ -1,22 +1,25 @@
 package net.sergeych.views
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.DefaultAlpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ArrowLeft
+import compose.icons.feathericons.Trash2
 import net.sergeych.raysearch.Params
+import net.sergeych.raysearch.SearchFolder
+import net.sergeych.raysearch.dbs
 import net.sergeych.raysearch.save
 
 
@@ -54,6 +57,22 @@ fun SettingsView(
             "When application is in background, it monitors file changes and keep the index up to date even when you close the window. You can activate it back with the tray icon. Otherwise the application closes with its window.",
             fontSize = 12.sp
         )
-
+        Heading("Indexed root paths:")
+        val roots = dbs { SearchFolder.roots(it) }
+        val userHome = System.getProperty("user.home")
+        for (r in roots) {
+            Card(Modifier.padding(4.dp).fillMaxWidth()) {
+                Row {
+                    Text(r.pathString, Modifier.padding(6.dp).weight(1f))
+                    val enabled = r.pathString != userHome
+                    IconButton({}, enabled = enabled) {
+                        Image(
+                            FeatherIcons.Trash2, "delete",
+                            alpha = if (enabled) DefaultAlpha else 0.1f
+                        )
+                    }
+                }
+            }
+        }
     }
 }
