@@ -87,7 +87,6 @@ object Scanner : LogTag("SCANR") {
                             badExts += fd.path.extension
 
                         }
-//                        fd.loadText()
                     }
                     indexer.commit()
                     changeBouncer.schedule()

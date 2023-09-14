@@ -9,7 +9,6 @@ import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import org.apache.tika.Tika
 import org.odftoolkit.odfdom.doc.OdfDocument
-import org.odftoolkit.odfdom.doc.OdfSpreadsheetDocument
 import org.odftoolkit.odfdom.doc.OdfTextDocument
 import org.odftoolkit.odfdom.incubator.doc.text.OdfEditableTextExtractor
 import java.io.BufferedInputStream
@@ -49,10 +48,13 @@ fun extractFromOdt(file: Path): String {
 }
 
 fun extractFromOds(file: Path): String {
-    val ods = OdfSpreadsheetDocument.loadDocument(file.toFile())
-    val text = OdfEditableTextExtractor.newOdfEditableTextExtractor(ods)
-        .text.replace('\r', '\n')
-    return text
+    // Odfspreadsheet package is a little too old and do not extract some
+    // data, so back to Tika:
+    return extractWithTika(file)
+//    val ods = OdfSpreadsheetDocument.loadDocument(file.toFile())
+//    val text = OdfEditableTextExtractor.newOdfEditableTextExtractor(ods)
+//        .text.replace('\r', '\n')
+//    return text
 }
 
 fun extractFromPdf(file: Path): String {

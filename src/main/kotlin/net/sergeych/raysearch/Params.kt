@@ -27,14 +27,20 @@ val _paramsState = MutableStateFlow<ParamsData>(
     if (file.exists() && file.isReadable())
         Json.decodeFromString(file.readText())
     else
-        ParamsData().also { it.save() }
+        ParamsData().also {
+            it.save()
+        }
 )
 
 val paramsStateFlow = _paramsState.asStateFlow()
 
 fun ParamsData.save() {
     file.writeText(Json.encodeToString(this))
-    _paramsState.value = this
+    // initialization issue -- it COULD happen and it HAPPENS on fresh new
+    // installation:
+    @Suppress("SENSELESS_COMPARISON")
+    if( _paramsState != null )
+        _paramsState.value = this
 }
 
 val Params: ParamsData get() = _paramsState.value
