@@ -4,6 +4,8 @@ import net.sergeych.appHomePath
 import net.sergeych.kotyara.Database
 import net.sergeych.kotyara.db.DbContext
 import net.sergeych.mp_logger.Log
+import net.sergeych.mp_logger.LogTag
+import net.sergeych.mp_logger.info
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -21,9 +23,10 @@ fun deleteDb() {
     File(lucenHome.toString()).deleteRecursively()
 }
 
+private val ldb = LogTag("SDB")
 val database by lazy {
-    if( Params.dataSchemeVersion < 2 ) {
-        println("Old database  or no database at all, recreating:")
+    if (Params.dataSchemeVersion < 2) {
+        ldb.info { "Old database  or no database at all, recreating:" }
         deleteDb()
         Params.copy(dataSchemeVersion = 2).save()
     }

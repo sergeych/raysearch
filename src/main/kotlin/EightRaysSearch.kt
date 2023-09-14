@@ -8,19 +8,19 @@ import net.sergeych.Config
 import net.sergeych.appHomePath
 import net.sergeych.mp_logger.FileLogCatcher
 import net.sergeych.mp_logger.Log
+import net.sergeych.mp_logger.LogTag
+import net.sergeych.mp_logger.info
 import net.sergeych.raysearch.Params
 import net.sergeych.raysearch.Scanner
 import net.sergeych.raysearch.paramsStateFlow
 import net.sergeych.tools.PlatformType
 import net.sergeych.views.App
-import org.apache.logging.log4j.LogManager
 import java.util.logging.ConsoleHandler
 import java.util.logging.Logger
 import kotlin.io.path.pathString
 
 val detectedPlatform: PlatformType by lazy {
     val p = System.getProperty("os.name").lowercase()
-    println("system reports: $p")
     when {
         p == "linux" -> PlatformType.Linux
         p.startsWith("windows") -> PlatformType.Windows
@@ -39,11 +39,8 @@ private class LogFixer {
 
 fun main() {
     LogFixer()
-    val l = LogManager.getRootLogger()
-    l.info("test")
-//    System.exit(0)
 
-    println("detected platform is: $detectedPlatform")
+    LogTag("MAIN").info {  "detected platform is: $detectedPlatform" }
 
     Log.connectConsole(Log.Level.INFO)
     FileLogCatcher(appHomePath.resolve("raysearch.log").pathString, Config.fileLogLevel, true)
@@ -59,7 +56,6 @@ fun main() {
         LaunchedEffect(true) {
             paramsStateFlow.collect {
                 showTray = it.runInBackground
-                println("show tray set to $showTray")
             }
         }
 

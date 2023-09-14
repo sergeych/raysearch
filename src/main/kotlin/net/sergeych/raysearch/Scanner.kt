@@ -61,8 +61,8 @@ object Scanner : LogTag("SCANR") {
             while (isActive) {
                 val fds = FileDoc.firstNotProcessed(50)
                 if (fds.isEmpty()) {
-                    info { "Scanner step done, ok exts: $okExts" }
-                    info { "bad exts: $badExts" }
+                    info { "Scanner step done, ok extensions: $okExts" }
+                    info { "bad extensions: $badExts" }
                     scannerPulser.receive()
                 }
                 else {

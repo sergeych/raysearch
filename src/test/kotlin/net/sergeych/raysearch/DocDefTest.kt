@@ -10,7 +10,6 @@ class classDocDefTest {
         val txt = DocType.ODS.extractTextFrom(
             Paths.get("/home/sergeych/Documents/indigo/M1.ods")
         )
-        println("------------- text is --- [${txt}]")
     }
 }
 
