@@ -7,8 +7,13 @@
 __It indexes:__
 
 - program sources, plain text documents in UTF8, ASCII, ISO/IEC-88591 - autodetecting contents, markdows, etc.
-- Libre Office or other ODF text documents and spreadsheets.
+- Libre Office or other ODF text documents spreadsheets and presentations, and such Microsoft office documents, some support for iWorks.
+- Electronic books: `.epub` and `.fb2`.
+- Web pages (`.html`) and all types of `xml` derived formats (except .svg that is excluded from indexing) 
+- Rich texts (`.rtf`), some CAD formats
+- Saved emails in different formats and even some mailboxes.
 - The text conent of the .pdf. Note that often pdf has no text.
+- many others, parser is still in the experimental state.
 
 # Search all your texts easily!
 
