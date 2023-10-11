@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "net.sergeych"
-version = "1.1.3"
+version = "1.1.4"
 
 repositories {
     mavenCentral()
@@ -37,6 +37,8 @@ dependencies {
 
     implementation("org.apache.tika:tika-core:2.9.0")
     implementation("org.apache.tika:tika-parsers-standard-package:2.9.0")
+
+    implementation("org.slf4j:slf4j-simple:2.0.9")
 
     implementation("net.sergeych:mp_stools:1.4.1-SNAPSHOT")
 //    implementation("net.sergeych:mp_bintools:0.0.3-SNAPSHOT")

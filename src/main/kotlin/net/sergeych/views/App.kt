@@ -33,6 +33,7 @@ fun App() {
         var showSettings by remember { mutableStateOf(false) }
         var nothingFound by remember { mutableStateOf(false) }
         val list = remember { mutableStateListOf<Indexer.Result>() }
+
         val deb = rememberDebouncer(410.milliseconds, 2000.milliseconds) {
             if (pattern == "") list.clear()
             else {
@@ -42,6 +43,7 @@ fun App() {
                     list.addAll(indexer.search(pattern, 50))
                     nothingFound = list.isEmpty()
                 }
+                // we loaded the list
                 busy = false
             }
         }
@@ -70,7 +72,6 @@ fun App() {
             enter = expandHorizontally(expandFrom = Alignment.Start) + fadeIn(),
             exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut()
         ) {
-//            if (showSettings) {
             SettingsView {
                 showSettings = false
             }
@@ -78,7 +79,7 @@ fun App() {
         AnimatedVisibility(
             !showSettings,
             enter = expandHorizontally(expandFrom = Alignment.End),
-            exit = shrinkHorizontally(shrinkTowards = Alignment.End)
+            exit = shrinkHorizontally(shrinkTowards = Alignment.End )
         ) {
             Column {
                 InputLine(pattern, modifier = Modifier.fillMaxWidth(),
