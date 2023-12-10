@@ -1,13 +1,13 @@
 # Missing Linux GUI app to full-text search files
 
-> See current release in the releases, now 1.1 is published. Please download .deb or .from 
+> See current release in the releases, now 1.1 is published. Please download .deb from
 > the [the latest release](https://github.com/sergeych/raysearch/releases), select the latest and
 > download installation file for your platform.
 
 __It indexes:__
 
 - program sources, plain text documents in UTF8, ASCII, ISO/IEC-88591 - autodetecting contents, markdows, etc.
-- Libre Office or other ODF text documents spreadsheets and presentations, and such Microsoft office documents, some support for iWorks.
+- Libre Office or other ODF text documents spreadsheets and presentations, and such as Microsoft office documents, some support for iWorks.
 - Electronic books: `.epub` and `.fb2`.
 - Web pages (`.html`) and all types of `xml` derived formats (except .svg that is excluded from indexing) 
 - Rich texts (`.rtf`), some CAD formats
@@ -40,9 +40,9 @@ containing folders and files using the system defaults (using gio).
 
 ## Fast start
 
-The application is ready to search immediately - even while scanning. IT will automatically add more entries to your
+The application is ready to search immediately — even while scanning. IT will automatically add more entries to your
 search as it scans more. For example, if you enter search, then copy some files from say USB, it will soon appear in the
-result list (if the copied files will match). The same, when you edit/delete matching files, it will dissapear from
+result list (if the copied files match). The same, when you edit/delete matching files, it will disappear from
 search.
 
 The app build indexes my home folder in 26s - and refresh in 6. Still you can just autostart it minimized:
@@ -76,14 +76,14 @@ Install from .deb file available in releases (see the right panel). Start with t
 
 ## Note on the cryptography
 
-This software does not implement or use any cryptograpy. Thus, it can't index encrypted files. It does not check ignature on signed files. While some cryptographic functions are included as a part of some libraries this software uses, it does not use it.
+This software does not implement or use any cryptography. Thus, it can't index encrypted files. It does not check the signature on signed files. While some cryptographic functions are included as a part of some libraries this software uses, it does not use it.
 
-## Why reinwenting the wheel?
+## Why reinventing the wheel?
 
 Reason d'être: I didn't find anything like, fast and neat, and grep on my software only archives takes minutes. This
 thing runs in split second most often. And I don't trust clouds and googles for my work and private life: I was born in
-the USSR and I am a true supporter of common sense and open source. This is enough to be banned from US/EU services
-nowdays ;)
+the USSR, and I am a true supporter of common sense and open source. This is enough to be banned from US/EU services
+ nowadays;)
 
 ## Other stuff
 
@@ -92,8 +92,8 @@ Welcome https://8-rays.dev. Unix rules!
 
 ## License
 
-I will license it under MIT real soon. Just trying to comply with apache licensed libraries.
+I will license it under MIT real soon. Just trying to comply with apache-licensed libraries.
 
-All this will soon receive MIT license - well, if they won't add clause agains red polo shirts or something worse. Right
+All this will soon receive MIT license - well if they won't add clause against red polo shirts or something worse. Right
 now the code is useless so no license yet. Contact me if you need something particularly strange. I need some advice
 whether I can publish it under MIT while it uses Lucene, which is Apache.
