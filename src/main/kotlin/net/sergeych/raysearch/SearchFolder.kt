@@ -171,6 +171,12 @@ data class SearchFolder(
                     ->
                         NpmProjectRule
 
+                    fileExists(parentPath+"/Cargo.toml") -> RustProjectRule
+
+
+                    fileExists("CACHEDIR.TAG") || fileExists("cachedir.tag" ) -> SkipAllRule
+
+
                     parentPath.lowercase().endsWith("android/sdk") ->
                         SkipAllRule
 

@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "net.sergeych"
-version = "1.1.4"
+version = "1.1.5"
 
 repositories {
     mavenCentral()
@@ -40,7 +40,7 @@ dependencies {
 
     implementation("org.slf4j:slf4j-simple:2.0.9")
 
-    implementation("net.sergeych:mp_stools:1.4.1-SNAPSHOT")
+    implementation("net.sergeych:mp_stools:1.4.2")
 //    implementation("net.sergeych:mp_bintools:0.0.3-SNAPSHOT")
     implementation("org.apache.logging.log4j:log4j-core:2.19.0")
 

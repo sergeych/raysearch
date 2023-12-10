@@ -135,4 +135,9 @@ object GradleProjectRule : SearchNamesRule(
     setOf("gradle.properties", "settings.gradle.kts", "gradlew", "gradlew.bat")
 )
 
+object RustProjectRule : SearchNamesRule(
+    setOf("target"),
+    setOf("Cargo.lock")
+)
+
 object NpmProjectRule : SearchNamesRule(setOf("node_modules"))
