@@ -7,9 +7,10 @@
 __It indexes:__
 
 - program sources, plain text documents in UTF8, ASCII, ISO/IEC-88591 - autodetecting contents, markdows, etc.
-- Libre Office or other ODF text documents spreadsheets and presentations, and such as Microsoft office documents, some support for iWorks.
+- Libre Office or other ODF text documents spreadsheets and presentations, and such as Microsoft office documents, some
+  support for iWorks.
 - Electronic books: `.epub` and `.fb2`.
-- Web pages (`.html`) and all types of `xml` derived formats (except .svg that is excluded from indexing) 
+- Web pages (`.html`) and all types of `xml` derived formats (except .svg that is excluded from indexing)
 - Rich texts (`.rtf`), some CAD formats
 - Saved emails in different formats and even some mailboxes.
 - The text conent of the .pdf. Note that often pdf has no text.
@@ -76,14 +77,16 @@ Install from .deb file available in releases (see the right panel). Start with t
 
 ## Note on the cryptography
 
-This software does not implement or use any cryptography. Thus, it can't index encrypted files. It does not check the signature on signed files. While some cryptographic functions are included as a part of some libraries this software uses, it does not use it.
+This software does not implement or use any cryptography. Thus, it can't index encrypted files. It does not check the
+signature on signed files. While some cryptographic functions are included as a part of some libraries this software
+uses, it does not use it.
 
 ## Why reinventing the wheel?
 
 Reason d'être: I didn't find anything like, fast and neat, and grep on my software only archives takes minutes. This
 thing runs in split second most often. And I don't trust clouds and googles for my work and private life: I was born in
 the USSR, and I am a true supporter of common sense and open source. This is enough to be banned from US/EU services
- nowadays;)
+nowadays;)
 
 ## Other stuff
 
