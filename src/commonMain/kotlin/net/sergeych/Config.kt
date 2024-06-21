@@ -24,7 +24,8 @@ data class ConfigData(
     }
 
     val version by lazy {
-        versionProps.getProperty("version") ?: "no version"
+        "undetected"
+//        versionProps.getProperty("version") ?: "no version"
     }
 
     fun openFile(file: Path) {

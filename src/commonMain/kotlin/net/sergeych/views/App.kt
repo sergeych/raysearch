@@ -11,13 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.sharp.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import compose.icons.FeatherIcons
-import compose.icons.feathericons.Settings
 import kotlinx.coroutines.isActive
 import net.sergeych.raysearch.Indexer
 import net.sergeych.raysearch.indexer
@@ -85,7 +85,7 @@ fun App() {
                 InputLine(pattern, modifier = Modifier.fillMaxWidth(),
                     trailingIcon = {
                         Image(
-                            FeatherIcons.Settings, "settings",
+                            Icons.Sharp.Settings,"123",
                             modifier = Modifier.clickable {
                                 showSettings = true
                             }.padding(12.dp)

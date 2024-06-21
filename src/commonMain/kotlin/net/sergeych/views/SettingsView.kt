@@ -7,6 +7,9 @@ import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.sharp.KeyboardArrowLeft
+import androidx.compose.material.icons.sharp.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,9 +17,6 @@ import androidx.compose.ui.graphics.DefaultAlpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import compose.icons.FeatherIcons
-import compose.icons.feathericons.ArrowLeft
-import compose.icons.feathericons.Trash2
 import net.sergeych.raysearch.Params
 import net.sergeych.raysearch.SearchFolder
 import net.sergeych.raysearch.dbs
@@ -42,7 +42,7 @@ fun SettingsView(
         Row(Modifier.padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton({ onDone() }) {
                 Icon(
-                    FeatherIcons.ArrowLeft, "back",
+                    Icons.AutoMirrored.Sharp.KeyboardArrowLeft, "back",
                 )
             }
             Text("Settings", fontWeight = FontWeight.Bold, fontSize = 24.sp)
@@ -67,7 +67,7 @@ fun SettingsView(
                     val enabled = r.pathString != userHome
                     IconButton({}, enabled = enabled) {
                         Image(
-                            FeatherIcons.Trash2, "delete",
+                            Icons.Sharp.Delete, "delete",
                             alpha = if (enabled) DefaultAlpha else 0.1f
                         )
                     }
